@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minhas Estatísticas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      /* Shared palette for buttons and highlights */
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f8f8f8;
+      padding: 16px;
+      color: #202920;
+      position: relative;
+    }
+
+    /* Airplane-themed decorative background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.3;
+      z-index: -1;
+    }
+    .card {
+      background: white;
+      border: 1px solid #374537;
+      border-radius: 8px;
+      padding: 16px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    h1 { margin-top:0; color:#2f4f2f; font-size:1.5rem; }
+    .btn-primario {
+      background: var(--verde);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-block;
+      transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    }
+    .btn-primario:hover {
+      transform: scale(1.02);
+      background: var(--verde-claro);
+    }
+    .table-estatisticas {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+    .table-estatisticas th, .table-estatisticas td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .table-estatisticas th {
+      background: #f0f0f0;
+    }
+    .small {
+      font-size: 0.8rem;
+      color: #555;
+    }
+    #mensagem {
+      margin-top: 12px;
+      color: darkred;
+    }
+    .top-bar {
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap:10px;
+      flex-wrap: wrap;
+      margin-bottom:12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div>
+      <h1>Minhas estatísticas</h1>
+      <div class="small">Por licença e matéria</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button id="carregar" class="btn-primario">Carregar estatísticas</button>
+      <button id="voltar" class="btn-primario">Voltar ao quiz</button>
+      <button id="logout" class="btn-primario" style="background:#555;">Sair</button>
+      <!-- NOVO: Botão para zerar estatísticas (soft reset) -->
+      <button id="reset-stats" class="btn-primario" style="background:#8B0000;">Zerar estatísticas</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="conteudo">
+      <p>Clique em "Carregar estatísticas" para visualizar seus dados.</p>
+    </div>
+    <div id="mensagem"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      updateDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZcJS_AQYPWcYRsnoWljBgZRItBrCO9DE",
+      authDomain: "quiz-aviacao.firebaseapp.com",
+      projectId: "quiz-aviacao",
+      storageBucket: "quiz-aviacao.appspot.com",
+      messagingSenderId: "304277871974",
+      appId: "1:304277871974:web:98ebb69afe488439d53ca7"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    async function verificarAssinatura(email) {
+      try {
+        const snap = await getDocs(query(collection(db, "usuarios"), where("email", "==", email)));
+        if (snap.empty) {
+          alert("Usuário não encontrado.");
+          window.location.href = "quiz.html";
+          return false;
+        }
+        const dados = snap.docs[0].data();
+        const ativo = dados.ativo;
+        const expiraEm = (dados.expiraEm && dados.expiraEm.toDate) ? dados.expiraEm.toDate() : new Date(0);
+        const agora = new Date();
+        if (!ativo || agora > expiraEm) {
+          alert("Sua assinatura está inativa ou expirada.");
+          window.location.href = "quiz.html";
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Erro ao verificar assinatura:", error);
+        alert("Erro ao verificar assinatura. Tente novamente mais tarde.");
+        window.location.href = "quiz.html";
+        return false;
+      }
+    }
+
+    // Verifica autenticação e assinatura ativa ao carregar a página
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Você precisa estar logado.");
+        window.location.href = "quiz.html";
+        return;
+      }
+      const assinaturaOk = await verificarAssinatura(user.email);
+      if (!assinaturaOk) return;
+      currentUser = user;
+    });
+
+    function porcentagem(acertos, total) {
+      return total ? ((acertos / total) * 100).toFixed(1) + "%" : "—";
+    }
+
+    // Utilitário: busca resetAt do usuário (se existir)
+    async function obterResetAtDate() {
+      const uSnap = await getDocs(query(collection(db, "usuarios"), where("email", "==", currentUser.email)));
+      if (uSnap.empty) return null;
+      const dados = uSnap.docs[0].data();
+      return (dados.resetAt && dados.resetAt.toDate) ? dados.resetAt.toDate() : null;
+    }
+
+    document.getElementById('carregar').onclick = async () => {
+      if (!currentUser) return;
+      const conteudo = document.getElementById('conteudo');
+      conteudo.innerHTML = "<p>Carregando dados...</p>";
+
+      try {
+        const resetAt = await obterResetAtDate();
+
+        // Primeiro buscamos as estatísticas individuais de questões respondidas pelo usuário
+        const respostasRef = collection(db, "respostas");
+        const qResp = query(respostasRef, where("uid", "==", currentUser.uid));
+        const snapshot = await getDocs(qResp);
+        const dados = snapshot.docs.map(d => d.data());
+
+        // Aplica filtro pelo resetAt (soft reset)
+        const respostasFiltradas = dados.filter(r => {
+          const when =
+            (r.data && r.data.toDate) ? r.data.toDate() :
+            (r.timestamp && r.timestamp.toDate) ? r.timestamp.toDate() : null;
+          return resetAt ? (when ? when >= resetAt : false) : true;
+        });
+
+        let estatisticasHtml = "";
+
+        if (respostasFiltradas.length > 0) {
+          // Agrupa por licença e matéria
+          const agrupado = {};
+          respostasFiltradas.forEach(r => {
+            const lic = r.licenca || "Sem licença";
+            const mat = r.materia || "Sem matéria";
+            const chave = `${lic}||${mat}`;
+            if (!agrupado[chave]) {
+              agrupado[chave] = { licenca: lic, materia: mat, acertos: 0, erros: 0 };
+            }
+            if (r.acertou) agrupado[chave].acertos++;
+            else agrupado[chave].erros++;
+          });
+          estatisticasHtml += `<h2 style="margin-top:24px;">Desempenho por licença e matéria</h2>`;
+          estatisticasHtml += `<table class="table-estatisticas">
+            <thead><tr>
+              <th>Licença</th><th>Matéria</th><th>Acertos</th><th>Erros</th><th>% Acertos</th>
+            </tr></thead><tbody>`;
+          Object.values(agrupado).forEach(row => {
+            const total = row.acertos + row.erros;
+            estatisticasHtml += `<tr>
+              <td>${row.licenca}</td>
+              <td>${row.materia}</td>
+              <td>${row.acertos}</td>
+              <td>${row.erros}</td>
+              <td>${porcentagem(row.acertos, total)}</td>
+            </tr>`;
+          });
+          estatisticasHtml += `</tbody></table>`;
+        }
+
+        // Agora buscamos os resultados de simulados completos
+        const simuladosRef = collection(db, "simulados");
+        const qSimulados = query(simuladosRef, where("uid", "==", currentUser.uid));
+        const simSnap = await getDocs(qSimulados);
+        let simuladosData = simSnap.docs.map(doc => doc.data());
+
+        // Soft reset para simulados
+        simuladosData = simuladosData.filter(s => {
+          const when = (s.data && s.data.toDate) ? s.data.toDate() : null;
+          return resetAt ? (when ? when >= resetAt : false) : true;
+        });
+
+        // Ordena localmente por data decrescente se disponível
+        simuladosData = simuladosData.filter(s => s.data && s.total != null && s.acertos != null);
+        simuladosData.sort((a, b) => {
+          const da = a.data && a.data.toDate ? a.data.toDate() : new Date(a.data);
+          const dbDate = b.data && b.data.toDate ? b.data.toDate() : new Date(b.data);
+          return dbDate - da;
+        });
+
+        let simuladosHtml = "";
+        if (simuladosData.length > 0) {
+          simuladosHtml += `<h2 style="margin-top:32px;">Simulados realizados</h2>`;
+          simuladosHtml += `<table class="table-estatisticas">
+            <thead><tr>
+              <th>Data</th>
+              <th>Total de questões</th>
+              <th>Acertos</th>
+              <th>Erros</th>
+              <th>% Acertos</th>
+            </tr></thead><tbody>`;
+          simuladosData.forEach(s => {
+            const dataObj = s.data && s.data.toDate ? s.data.toDate() : new Date(s.data);
+            const dataStr = dataObj.toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const acertos = s.acertos || 0;
+            const total = s.total || 0;
+            const erros = total - acertos;
+            simuladosHtml += `<tr>
+              <td>${dataStr}</td>
+              <td>${total}</td>
+              <td>${acertos}</td>
+              <td>${erros}</td>
+              <td>${porcentagem(acertos, total)}</td>
+            </tr>`;
+          });
+          simuladosHtml += `</tbody></table>`;
+        }
+
+        // Se não houver nenhum dado
+        if (!estatisticasHtml && simuladosHtml === "") {
+          conteudo.innerHTML = "<p>Você ainda não respondeu nenhuma questão ou simulados.</p>";
+        } else {
+          conteudo.innerHTML = estatisticasHtml + simuladosHtml;
+        }
+
+      } catch (err) {
+        console.error(err);
+        conteudo.innerHTML = "<p>Erro ao carregar estatísticas.</p>";
+      }
+    };
+
+    // Zerar estatísticas (soft reset via resetAt)
+    document.getElementById('reset-stats').onclick = async () => {
+      if (!currentUser) return;
+      const ok = confirm("Tem certeza que deseja zerar suas estatísticas? Esta ação não poderá ser desfeita.");
+      if (!ok) return;
+      const msg = document.getElementById('mensagem');
+      msg.style.color = '#202920';
+      msg.textContent = 'Zerando…';
+      try {
+        const uSnap = await getDocs(query(collection(db, 'usuarios'), where('email', '==', currentUser.email)));
+        if (uSnap.empty) {
+          msg.style.color = 'darkred';
+          msg.textContent = 'Usuário não encontrado.';
+          return;
+        }
+        await updateDoc(uSnap.docs[0].ref, { resetAt: serverTimestamp() });
+        msg.style.color = 'green';
+        msg.textContent = 'Estatísticas zeradas com sucesso.';
+        // Atualiza a visualização para refletir o reset
+        document.getElementById('conteudo').innerHTML = "<p>Você ainda não respondeu nenhuma questão ou simulados.</p>";
+      } catch (err) {
+        console.error(err);
+        msg.style.color = 'darkred';
+        msg.textContent = 'Erro ao zerar estatísticas.';
+      }
+    };
+
+    document.getElementById('voltar').onclick = () => {
+      window.location.href = "quiz.html";
+    };
+    document.getElementById('logout').onclick = () => {
+      signOut(auth);
+    };
+  </script>
+</body>
+</html>

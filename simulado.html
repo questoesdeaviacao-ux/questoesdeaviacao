@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulado</title>
+  <style>
+    :root {
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+    }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      position: relative;
+    }
+
+    /* Decorative airplane background for continuity */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.04;
+      z-index: -1;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    /* Preserve newline characters in comment display */
+    .comentario {
+      white-space: pre-wrap;
+    }
+    .btn {
+      background: var(--verde);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 5px;
+      font-weight: 600;
+      transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn:hover {
+      transform: scale(1.02);
+      background: var(--verde-claro);
+    }
+    #cronometro-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      text-align: right;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+    #cronometro {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botão Voltar -->
+  <button class="btn" style="position: fixed; top: 20px; left: 20px; z-index: 1000;" onclick="window.location.href='quiz.html'">⬅ Voltar</button>
+
+  <!-- Cronômetro -->
+  <div id="cronometro-container">
+    <div id="cronometro">🕒 00:00</div>
+    <button class="btn" id="start-timer">Iniciar</button>
+    <button class="btn" id="pause-timer" style="display:none;">Pausar</button>
+    <button class="btn" id="reset-timer" style="display:none;">Zerar</button>
+  </div>
+
+  <!-- Conteúdo original -->
+  <h1>Simulado</h1>
+  <div id="filtro">
+    <select id="licenca" style="margin-right:6px;">
+      <option value="" disabled selected>Escolha a licença…</option>
+    </select>
+    <select id="materia" style="margin-right:6px;">
+      <option value="">Todas as matérias (opcional)</option>
+    </select>
+    <input type="number" id="quantidade" placeholder="Qtd. questões" />
+    <button class="btn" onclick="adicionarBloco()">Adicionar bloco</button>
+    <button class="btn" onclick="gerarSimulado()">Gerar simulado completo</button>
+    <div id="blocos"></div>
+  </div>
+
+  <div id="simulado" style="display:none;">
+    <div id="questoes"></div>
+    <button class="btn" onclick="submeterSimulado()">Submeter resoluções</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZcJS_AQYPWcYRsnoWljBgZRItBrCO9DE",
+      authDomain: "quiz-aviacao.firebaseapp.com",
+      projectId: "quiz-aviacao",
+      storageBucket: "quiz-aviacao.appspot.com",
+      messagingSenderId: "304277871974",
+      appId: "1:304277871974:web:98ebb69afe488439d53ca7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let questoesFinal = [];
+    let blocos = [];
+
+    /**
+     * Verifica se o usuário possui uma assinatura ativa.
+     * Realiza uma consulta na coleção "assinaturas" buscando
+     * documentos que correspondam ao e‑mail fornecido e tenham
+     * o campo "status" igual a "ativo". Caso não haja
+     * correspondência, o usuário é redirecionado para
+     * quiz.html e recebe um alerta informando que precisa
+     * de uma assinatura ativa.
+     *
+     * @param {string} email E‑mail do usuário autenticado
+     * @returns {Promise<boolean>} True se assinatura for ativa, false caso contrário
+     */
+    async function verificarAssinatura(email) {
+      try {
+        // Consulta na coleção de usuários pelo email informado
+        const snap = await getDocs(query(collection(db, "usuarios"), where("email", "==", email)));
+        if (snap.empty) {
+          // Nenhum usuário encontrado
+          alert("Usuário não encontrado.");
+          location.href = "quiz.html";
+          return false;
+        }
+        const dados = snap.docs[0].data();
+        const ativo = dados.ativo;
+        // expiraEm é um Timestamp do Firestore: converte para Date; se não existir, cria data antiga
+        const expiraEm = (dados.expiraEm && dados.expiraEm.toDate) ? dados.expiraEm.toDate() : new Date(0);
+        const agora = new Date();
+        // Se assinatura inativa ou expirada, impede acesso
+        if (!ativo || agora > expiraEm) {
+          alert("Sua assinatura está inativa ou expirada.");
+          location.href = "quiz.html";
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Erro ao verificar assinatura:", error);
+        alert("Erro ao verificar assinatura. Tente novamente mais tarde.");
+        location.href = "quiz.html";
+        return false;
+      }
+    }
+
+    const licencasMaterias = {
+      "Piloto Privado Avião": [
+        "Regulamentos de Tráfego Aéreo",
+        "Conhecimentos Técnicos",
+        "Meteorologia",
+        "Navegação Aérea",
+        "Teoria de Voo"
+      ],
+      "Piloto Comercial Avião": [
+        "Conhecimentos Técnicos",
+        "Meteorologia",
+        "Regulamentos de Tráfego Aéreo",
+        "Teoria de Voo"
+      ],
+      "Comissário": [
+        "Bloco 1 - Emergência, Segurança e Sobrevivência",
+        "Bloco 2 - Regulamentação da Profissão do Aeronauta",
+        "Bloco 3 - Aspectos Fisiológicos da Atividade de Comissário e Primeiros Socorros",
+        "Bloco 4 - Conhecimentos Gerais de Aeronave"
+      ],
+      "Piloto de Linha Aérea": [
+        "Teoria de Voo"
+      ],
+      "Airline Transport Pilot Licence (ATPL)": [
+        "Airline Transport Pilot Licence (ATPL)"
+      ],
+      "Piloto Privado Helicóptero": [
+        "Regulamentos de Tráfego Aéreo",
+        "Conhecimentos Técnicos",
+        "Meteorologia",
+        "Navegação Aérea",
+        "Teoria de Voo"
+      ],
+      "Instrutor de Voo de Avião (INVA)": [
+        "Instrutor de Voo de Avião (INVA)"
+      ],
+      "Mecânico de Manutenção de Aeronaves": [
+        "Grupo Moto-Propulsor (GMP)",
+        "Módulo Básico",
+        "Módulo Célula",
+        "Aviônicos"
+      ]
+    };
+
+    function popularSelects() {
+      const licencaSelect = document.getElementById("licenca");
+      const materiaSelect = document.getElementById("materia");
+      Object.keys(licencasMaterias).forEach(nomeLicenca => {
+        const option = document.createElement("option");
+        option.value = nomeLicenca;
+        option.textContent = nomeLicenca;
+        licencaSelect.appendChild(option);
+      });
+      licencaSelect.addEventListener("change", () => {
+        const licencaSelecionada = licencaSelect.value;
+        materiaSelect.innerHTML = "";
+        const opcaoPadrao = document.createElement("option");
+        opcaoPadrao.value = "";
+        opcaoPadrao.textContent = "Todas as matérias (opcional)";
+        materiaSelect.appendChild(opcaoPadrao);
+        if (licencasMaterias[licencaSelecionada]) {
+          licencasMaterias[licencaSelecionada].forEach(nomeMateria => {
+            const opt = document.createElement("option");
+            opt.value = nomeMateria;
+            opt.textContent = nomeMateria;
+            materiaSelect.appendChild(opt);
+          });
+          materiaSelect.disabled = false;
+        } else {
+          materiaSelect.disabled = true;
+        }
+      });
+      materiaSelect.disabled = true;
+    }
+
+    // Verifica autenticação e assinatura ativa ao carregar
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Você precisa estar logado.");
+        location.href = "quiz.html";
+        return;
+      }
+      // Usuário autenticado, verifica assinatura ativa antes de liberar acesso
+      const temAssinatura = await verificarAssinatura(user.email);
+      if (!temAssinatura) {
+      // A função verificarAssinatura já trata redirecionamento
+        return;
+      }
+      currentUser = user;
+    });
+
+    function adicionarBloco() {
+      const licenca = document.getElementById("licenca").value;
+      const materia = document.getElementById("materia").value;
+      const quantidade = parseInt(document.getElementById("quantidade").value);
+      if (!licenca || !quantidade) {
+        alert("Preencha a licença e a quantidade.");
+        return;
+      }
+      blocos.push({ licenca, materia, quantidade });
+      atualizarListaBlocos();
+    }
+
+    function atualizarListaBlocos() {
+      const blocosDiv = document.getElementById("blocos");
+      if (blocos.length === 0) {
+        blocosDiv.innerHTML = "";
+        return;
+      }
+      let html = `<table style="width:100%; border-collapse: collapse; margin-top:10px; font-size:0.9rem;">
+        <thead><tr>
+          <th style="border:1px solid #ccc; padding:4px; background:#f0f0f0;">Licença</th>
+          <th style="border:1px solid #ccc; padding:4px; background:#f0f0f0;">Matéria</th>
+          <th style="border:1px solid #ccc; padding:4px; background:#f0f0f0;">Quantidade</th>
+        </tr></thead><tbody>`;
+      blocos.forEach(b => {
+        html += `<tr>
+          <td style="border:1px solid #ccc; padding:4px;">${b.licenca}</td>
+          <td style="border:1px solid #ccc; padding:4px;">${b.materia || 'Todas'}</td>
+          <td style="border:1px solid #ccc; padding:4px; text-align:center;">${b.quantidade}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      blocosDiv.innerHTML = html;
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    async function gerarSimulado() {
+      if (blocos.length === 0) return alert("Adicione pelo menos um bloco.");
+      document.getElementById("filtro").style.display = "none";
+      document.getElementById("simulado").style.display = "block";
+      questoesFinal = [];
+      for (const b of blocos) {
+        let filtros = [where("licenca", "==", b.licenca)];
+        if (b.materia) filtros.push(where("materia", "==", b.materia));
+        const snap = await getDocs(query(collection(db, "questoes"), ...filtros));
+        const todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        shuffle(todas);
+        questoesFinal.push(...todas.slice(0, b.quantidade));
+      }
+      exibirQuestoes();
+    }
+
+    function exibirQuestoes() {
+      const container = document.getElementById("questoes");
+      container.innerHTML = "";
+      questoesFinal.forEach((q, index) => {
+        const cardDiv = document.createElement("div");
+        cardDiv.id = `card-${q.id}`;
+        cardDiv.style.marginBottom = "20px";
+        cardDiv.style.padding = "10px";
+        cardDiv.style.border = "1px solid #ccc";
+        cardDiv.style.borderRadius = "6px";
+        cardDiv.style.background = "#fff";
+        const enunciadoEl = document.createElement("strong");
+        enunciadoEl.innerHTML = `${index + 1}. ${q.enunciado}`;
+        cardDiv.appendChild(enunciadoEl);
+        cardDiv.appendChild(document.createElement("br"));
+        cardDiv.appendChild(document.createElement("br"));
+        ["A", "B", "C", "D"].forEach((letra, idx) => {
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `q${q.id}`;
+          input.value = letra;
+          label.appendChild(input);
+          let alternativaTexto = '';
+          if (q.alternativas && typeof q.alternativas === 'object') {
+            alternativaTexto = q.alternativas[idx] ?? q.alternativas[idx.toString()] ?? '';
+          }
+          if (!alternativaTexto) {
+            alternativaTexto = q[idx] ?? q[idx.toString()] ?? q[letra.toLowerCase()] ?? q[letra] ?? '';
+          }
+          label.appendChild(document.createTextNode(` ${letra}) ${alternativaTexto}`));
+          cardDiv.appendChild(label);
+          cardDiv.appendChild(document.createElement("br"));
+        });
+        const resultadoEl = document.createElement("div");
+        resultadoEl.className = "resultado";
+        resultadoEl.style.marginTop = "8px";
+        resultadoEl.style.fontWeight = "bold";
+        cardDiv.appendChild(resultadoEl);
+        const comentarioEl = document.createElement("div");
+        comentarioEl.className = "comentario";
+        comentarioEl.style.marginTop = "4px";
+        comentarioEl.style.fontStyle = "italic";
+        cardDiv.appendChild(comentarioEl);
+        container.appendChild(cardDiv);
+      });
+
+      // Reprocessa LaTeX em todas as questões renderizadas
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        try {
+          MathJax.typesetPromise([container]);
+        } catch (e) {
+          /* ignora erros do MathJax */
+        }
+      }
+    }
+
+    async function submeterSimulado() {
+      let acertos = 0;
+      const submitBtn = document.querySelector("#simulado button.btn");
+      if (submitBtn) submitBtn.disabled = true;
+      for (const q of questoesFinal) {
+        const marcada = document.querySelector(`input[name="q${q.id}"]:checked`);
+        const userResposta = marcada ? marcada.value : null;
+        let letraCorreta;
+        if (typeof q.correta === 'number' || (typeof q.correta === 'string' && !isNaN(parseInt(q.correta)))) {
+          const idxCorreta = parseInt(q.correta);
+          const letrasMap = ["A", "B", "C", "D"];
+          letraCorreta = letrasMap[idxCorreta] ?? q.correta;
+        } else {
+          letraCorreta = q.correta;
+        }
+        const acertou = userResposta && (letraCorreta === userResposta);
+        if (acertou) acertos++;
+        const card = document.getElementById(`card-${q.id}`);
+        if (card) {
+          card.querySelectorAll('input[type="radio"]').forEach(inp => inp.disabled = true);
+          const resEl = card.querySelector('.resultado');
+          const comEl = card.querySelector('.comentario');
+          if (resEl) {
+            if (userResposta) {
+              resEl.textContent = acertou ? '✔️ Resposta correta' : '❌ Resposta incorreta';
+              resEl.style.color = acertou ? 'green' : 'red';
+            } else {
+              resEl.textContent = '❌ Não respondida';
+              resEl.style.color = 'red';
+            }
+          }
+          if (comEl) {
+            let corretaTexto = '';
+            if (q.alternativas && typeof q.alternativas === 'object') {
+              if (typeof q.correta === 'number' || (typeof q.correta === 'string' && !isNaN(parseInt(q.correta)))) {
+                const idxCorreta = parseInt(q.correta);
+                corretaTexto = q.alternativas[idxCorreta] ?? q.alternativas[idxCorreta.toString()] ?? '';
+              } else {
+                const letrasMap = {A:0, B:1, C:2, D:3};
+                const idx = letrasMap[letraCorreta];
+                if (idx !== undefined) {
+                  corretaTexto = q.alternativas[idx] ?? q.alternativas[idx.toString()] ?? '';
+                }
+              }
+            }
+            if (!corretaTexto) {
+              if (typeof q.correta === 'number' || (typeof q.correta === 'string' && !isNaN(parseInt(q.correta)))) {
+                const idxCorreta = parseInt(q.correta);
+                corretaTexto = q[idxCorreta] ?? q[idxCorreta.toString()] ?? '';
+              } else {
+                corretaTexto = q[letraCorreta.toLowerCase()] ?? q[letraCorreta] ?? '';
+              }
+            }
+            let comentarioTexto = '';
+            if (q.comentario) {
+              comentarioTexto = `\nComentário: ${q.comentario}`;
+            }
+            comEl.textContent = `Resposta correta: ${letraCorreta}) ${corretaTexto}${comentarioTexto}`;
+
+            // Reprocessa LaTeX no comentário e resposta após inserção
+            if (window.MathJax && window.MathJax.typesetPromise) {
+              try {
+                MathJax.typesetPromise([comEl]);
+              } catch (e) {
+                /* ignora erros do MathJax */
+              }
+            }
+          }
+        }
+        await addDoc(collection(db, "respostas"), {
+          uid: currentUser.uid,
+          questaoId: q.id,
+          acertou: !!acertou,
+          materia: q.materia,
+          licenca: q.licenca,
+          resposta: userResposta || null,
+          data: serverTimestamp()
+        });
+      }
+      const porcentagem = Math.round((acertos / questoesFinal.length) * 100);
+      await addDoc(collection(db, "simulados"), {
+        uid: currentUser.uid,
+        total: questoesFinal.length,
+        acertos,
+        porcentagem,
+        data: serverTimestamp()
+      });
+      alert(`Simulado submetido!\nVocê acertou ${acertos}/${questoesFinal.length} (${porcentagem}%)`);
+    }
+
+    window.gerarSimulado = gerarSimulado;
+    window.submeterSimulado = submeterSimulado;
+    window.adicionarBloco = adicionarBloco;
+
+    popularSelects();
+
+    let timer = null;
+    let segundos = 0;
+
+    const cronometroEl = document.getElementById("cronometro");
+    const startBtn = document.getElementById("start-timer");
+    const pauseBtn = document.getElementById("pause-timer");
+    const resetBtn = document.getElementById("reset-timer");
+
+    function formatarTempo(seg) {
+      const m = Math.floor(seg / 60).toString().padStart(2, "0");
+      const s = (seg % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        segundos++;
+        cronometroEl.textContent = "🕒 " + formatarTempo(segundos);
+      }, 1000);
+      startBtn.style.display = "none";
+      pauseBtn.style.display = "inline-block";
+      resetBtn.style.display = "inline-block";
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      timer = null;
+      startBtn.textContent = "Continuar";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      timer = null;
+      segundos = 0;
+      cronometroEl.textContent = "🕒 00:00";
+      startBtn.textContent = "Iniciar";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+      resetBtn.style.display = "none";
+    });
+  </script>
+  <!-- Configuração e carregamento do MathJax para LaTeX -->
+  <script>
+    // Configuração do MathJax para permitir fórmulas inline e em modo display.
+    // Suportamos '$…$', '\\(…\\)', '$$…$$' e '\\[…\\]'.
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!-- index.html (título reprojetado, restante intacto) -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Questões de Aviação - Início</title>
+
+  <!-- Fonte moderna e profissional apenas para o título -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+      --cinza-claro: #f2f2f2;
+      --cinza-fundo: #fafafa;
+      --cinza-borda: #ddd;
+      --texto-principal: #1c1c1c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      color: var(--texto-principal);
+      background: var(--cinza-claro);
+      position: relative; /* para o pseudo-fundo */
+    }
+    /* Fundo com a sua imagem (ajuste o caminho do arquivo se precisar) */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.30;           /* intensidade do fundo (pode ajustar) */
+      z-index: -1;
+    }
+
+    /* ====== TÍTULO REPROJETADO ====== */
+    header {
+      text-align: center;
+      background: transparent; /* barra leve */
+      padding: 32px 12px 8px; /* menos pesado visualmente */
+    }
+    .title-card {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);          /* cartão translúcido */
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.6);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      justify-content: center;
+    }
+    .title-row .plane {
+      font-size: clamp(20px, 3vw, 26px);
+      line-height: 1;
+      color: var(--verde);
+      transform: translateY(2px);
+    }
+    header h1 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: .5px;
+      color: var(--verde);
+      font-size: clamp(28px, 5vw, 52px);
+      line-height: 1.1;
+      margin: 0;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    header h2 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 400;
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: #2d3a2d;
+      opacity: .9;
+      margin-top: 6px;
+      letter-spacing: .2px;
+    }
+    .accent {
+      width: min(42ch, 80vw);
+      height: 4px;
+      margin: 8px auto 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--verde) 0%, var(--verde-claro) 100%);
+      box-shadow: 0 2px 8px rgba(47,79,47,0.25);
+    }
+    /* ====== FIM DO NOVO TÍTULO ====== */
+
+    .container {
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+/* Botão padrão (Entrar, Cadastre-se, Assinar etc.) */
+.btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: var(--verde);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn:hover {
+  background-color: var(--verde-claro);
+  transform: scale(1.02);
+}
+
+/* Versão menor para barra de navegação */
+.btn-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  background-color: var(--verde);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 38px;
+}
+.btn-small:hover {
+  background-color: var(--verde-claro);
+  transform: scale(1.02);
+}
+
+/* Versão para ícones da barra */
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+    .link {
+      margin-top: 14px;
+      display: inline-block;
+      color: var(--verde);
+      text-decoration: underline;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .info-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      margin: 60px auto;
+      max-width: 1100px;
+      padding: 0 20px;
+    }
+    .info-box {
+      flex: 1 1 450px;
+      background: white;
+      border: 1px solid var(--cinza-borda);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease-in-out;
+    }
+    .info-box:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.07); transform: translateY(-2px); }
+    .info-box h3 { color: var(--verde); font-size: 1.5rem; margin-bottom: 16px; }
+    .info-box p, .info-box ul { font-size: 1rem; line-height: 1.6; color: #444; }
+    .info-box ul { padding-left: 20px; margin-top: 10px; }
+
+    .price-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    .price-table th, .price-table td {
+      border: 1px solid #ccc; padding: 12px; text-align: center; font-size: 0.95rem;
+    }
+    .price-table th { background-color: #f0f0f0; color: var(--verde); }
+    .price-table td { background-color: var(--cinza-fundo); }
+    .highlight { font-weight: bold; color: var(--verde); background-color: #e8f5e9 !important; }
+    .badge { background: var(--verde); color: white; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<!-- Barra de navegação superior -->
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: rgba(255,255,255,0.7); border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 999;">
+
+  <button class="btn-small" onclick="window.location.href='quiz.html'">Portal do Aluno</button>
+  <button class="btn-small" onclick="window.location.href='materias.html'">Matérias</button>
+  <button class="btn-small" onclick="window.location.href='vendas.html'">Planos</button>
+  <button class="btn-small" onclick="window.location.href='blog.html'">Blog</button>
+  <button class="btn-small" onclick="window.open('faleconosco.html', '_blank')">Fale Conosco</button>
+
+  <!-- WhatsApp -->
+  <a href="https://wa.me/5561920052273" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
+    <img src="WhatsApp.svg" alt="WhatsApp">
+  </a>
+
+  <!-- Instagram -->
+  <a href="https://www.instagram.com/questoesdeaviacao" target="_blank" title="Nosso Instagram" class="btn-small btn-icon">
+    <img src="instagram.svg" alt="Instagram">
+  </a>
+</div>
+
+
+
+
+  <header>
+    <div class="title-card">
+      <div class="title-row">
+       
+        <h1>QUESTÕES DE AVIAÇÃO</h1>
+      </div>
+      <h2>Portal do Aluno</h2>
+    </div>
+    <div class="accent"></div>
+  </header>
+
+  <div class="container">
+    <button class="btn" onclick="window.location.href='quiz.html'">Entrar</button>
+    <button class="btn" onclick="window.location.href='cadastro.html'">Cadastre-se</button>
+  </div>
+
+  <div class="info-section">
+    <div class="info-box">
+      <h3>Estude com quem mais entende da prova da ANAC</h3>
+      <p>Faça questões e simulados ILIMITADOS:</p>
+      <ul>
+        <li>✈️ Comissário de Bordo</li>
+        <li>🛩️ Piloto Privado Avião</li>
+        <li>🛩️ Piloto Comercial Avião</li>
+        <li>🚁 Piloto Privado Helicóptero</li>
+        <li>🛠️ Mecânico de Manutenção de Aeronaves</li>
+        <li>👨‍🏫 Instrutor de Voo de Avião (INVA)</li>
+        <li>🌍 Airline Transport Pilot Licence (ATPL)</li>
+        <br>
+      </ul>
+      <p>Prepare-se com confiança! Questões, simulados, estatísticas e comentários explicativos — tudo em um só lugar.</p>
+    </div>
+
+    <div class="info-box" style="text-align: center;">
+      <h3>Planos e Preços</h3>
+      <table class="price-table" style="table-layout: fixed; width: 100%;">
+        <colgroup>
+          <col style="width: 25%;">
+          <col style="width: 20%;">
+          <col style="width: 25%;">
+          <col style="width: 30%;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Plano</th>
+            <th>Duração</th>
+            <th>Preço</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Básico</td>
+            <td>30 dias</td>
+            <td><s>R$ 129,90</s><br><strong>R$ 69,90</strong></td>
+            <td><button class="btn" style="width: 100%;" onclick="window.location.href='https://pay.hotmart.com/I101337939X?off=7kfi8udg'">Assine agora</button></td>
+          </tr>
+          <tr>
+            <td>Avançado</td>
+            <td>90 dias</td>
+            <td><s>R$ 350,73</s><br><strong>R$ 185,89</strong></td>
+            <td><button class="btn" style="width: 100%;" onclick="window.location.href='https://pay.hotmart.com/I101337939X?off=u6l48anm'">Assine agora</button></td>
+          </tr>
+          <tr class="highlight">
+            <td>Profissional <span class="badge">+ Popular</span></td>
+            <td>180 dias</td>
+            <td><s>R$ 623,52</s><br><strong>R$ 330,46</strong></td>
+            <td><button class="btn" style="width: 100%;" onclick="window.location.href='https://pay.hotmart.com/I101337939X?off=vuqtlmcp'">Assine agora</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 18px;">Acesso total às questões, simulados, histórico, estatísticas e comentários exclusivos de instrutores.</p>
+      <p style="margin-top: 10px; font-size: 0.85rem; color: #666;">*Pagamento recorrente. Desconto válido apenas para a primeira cobrança.</p>
+    </div>
+  </div>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+
+
+</body>
+</html>

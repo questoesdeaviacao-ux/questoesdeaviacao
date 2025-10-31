@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QUESTÕES DE AVIAÇÃO - Portal do Aluno</title>
+
+  <!-- Fonte do título (igual à Home) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --fundo-claro: #f0f0f0;
+      --texto-claro: #004400;
+      --fundo-escuro: #202920;
+      --texto-escuro: #f0f0f0;
+      --borda-escura: #374537;
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+  /* altura da barra de navegação fixa */
+  --topbar-h: 66px;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--fundo-claro);
+      color: var(--texto-claro);
+      margin: 0;
+      padding: 0;
+      /* adiciona espaço no topo para a barra fixa */
+      padding-top: var(--topbar-h);
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.30;
+      z-index: -1;
+    }
+
+    header {
+      text-align: center;
+      background: transparent;
+      padding: 32px 12px 8px;
+    }
+    .title-card {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .title-row { display: flex; align-items: baseline; justify-content: center; gap: 10px; }
+    header h1 {
+      font-family: "Poppins","Segoe UI",system-ui,sans-serif;
+      font-weight: 800; letter-spacing: .5px; color: var(--verde);
+      font-size: clamp(28px, 5vw, 52px); line-height: 1.1; margin: 0;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    header h2 {
+      font-family: "Poppins","Segoe UI",system-ui,sans-serif;
+      font-weight: 400; font-size: clamp(14px,1.8vw,18px);
+      color: #2d3a2d; opacity: .9; margin-top: 6px; letter-spacing: .2px;
+    }
+    .accent {
+      width: min(42ch, 80vw); height: 4px; margin: 8px auto 0; border-radius: 999px;
+      background: linear-gradient(90deg, var(--verde) 0%, var(--verde-claro) 100%);
+      box-shadow: 0 2px 8px rgba(47,79,47,0.25);
+    }
+
+    #logout {
+      position: fixed;
+      /* reposiciona abaixo da barra fixa */
+      top: calc(var(--topbar-h) + 10px);
+      left: 12px;
+      z-index: 10;
+      display: none;
+      width: auto;
+      padding: 8px 14px;
+      border-radius: 25px;
+      background: var(--verde);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      font-size: .95rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform .2s ease-in-out, background .2s ease-in-out;
+    }
+    #logout:hover { transform: scale(1.02); background: var(--verde-claro); }
+
+    .btn-primario, .btn-secundario {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-primario {
+      background-color: var(--verde) !important;
+      color: #fff;
+      border: none;
+      text-align: center;
+      display: inline-block;
+      width: 100%;
+      box-sizing: border-box;
+      text-decoration: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .btn-primario:hover { transform: scale(1.02); background: var(--verde-claro); }
+    .btn-secundario { background: #e6e6e6; color: var(--verde); border: none; }
+    .btn-secundario:hover { transform: scale(1.02); background: #f2f2f2; }
+
+    /* estilo para botões pequenos da barra de navegação (copiado do index) */
+    .btn-small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background-color: var(--verde);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      height: 38px;
+    }
+    .btn-small:hover { background-color: var(--verde-claro); transform: scale(1.02); }
+
+    /* estilo para ícones da barra de navegação */
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon img {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* contêiner da barra de navegação fixa */
+    .nav-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid #ccc;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      backdrop-filter: saturate(140%) blur(6px);
+    }
+
+    #login-form {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 40px auto;
+      max-width: 400px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    #login-form input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    a.link-secundario { text-decoration: underline; color: #004400; font-size: 0.9rem; margin-top: 6px; }
+
+    .quiz-container {
+      display: none;
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 6px 0 8px;
+    }
+    .top-actions .btn-primario { width: auto; display: inline-block; padding-left: 16px; padding-right: 16px; }
+
+    .filters {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 16px; align-items: center; justify-content: center;
+    }
+    .filters .btn-primario { width: auto; display: inline-block; padding-left: 16px; padding-right: 16px; }
+    .quiz-container .btn-secundario { width: auto; display: inline-block; padding-left: 16px; padding-right: 16px; }
+    .filters input[type="text"]{ min-width: 260px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+
+    #options button { display: block; margin: 4px 0; width: 100%; text-align: left; }
+    #comentario {
+      margin-top: 10px;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      /* Preserve newline characters when showing comments */
+      white-space: pre-wrap;
+    }
+
+    #fLicenca, #fMateria { height: 48px; font-size: 24px; padding: 8px 12px; }
+    #fTexto { height: 20px; font-size: 18px; padding: 8px 12px; }
+
+    #question {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    /* estado visual quando uma alternativa está apenas selecionada (antes de enviar) */
+    #options .option-selected {
+      background: #dfe9df;            /* levemente mais destacada que o btn-secundario */
+      outline: 2px solid var(--verde); /* borda no tom do tema */
+    }
+
+    /* feedback visual p/ o botão de envio desabilitado */
+    #btn-enviar-resposta:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* reduz o tamanho do botão de envio para caber somente o texto */
+    #btn-enviar-resposta {
+      width: auto !important;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Barra de navegação fixa -->
+  <div class="nav-top">
+    <button class="btn-small" onclick="window.location.href='quiz.html'">Portal do Aluno</button>
+    <button class="btn-small" onclick="window.location.href='materias.html'">Matérias</button>
+    <button class="btn-small" onclick="window.location.href='vendas.html'">Planos</button>
+    <button class="btn-small" onclick="window.location.href='tutoriais.html'">Tutoriais</button>
+    <button class="btn-small" onclick="window.open('faleconosco.html', '_blank')">Fale Conosco</button>
+    <a href="https://wa.me/5561920052273" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
+      <img src="WhatsApp.svg" alt="WhatsApp" />
+    </a>
+    <a href="https://www.instagram.com/questoesdeaviacao" target="_blank" title="Nosso Instagram" class="btn-small btn-icon">
+      <img src="instagram.svg" alt="Instagram" />
+    </a>
+  </div>
+
+  <button id="logout" class="btn-primario">Sair</button>
+
+  <header>
+    <div class="title-card">
+      <div class="title-row">
+        <h1>QUESTÕES DE AVIAÇÃO</h1>
+      </div>
+      <h2>Portal do Aluno</h2>
+    </div>
+    <div class="accent"></div>
+  </header>
+
+  <form id="login-form">
+    <input id="email" type="email" placeholder="Email" required />
+    <input id="password" type="password" placeholder="Senha" required />
+    <button id="login-btn" type="button" class="btn-primario">Entrar</button>
+    <button onclick="window.location.href='cadastro.html'" class="btn-primario">Cadastre-se</button>
+    <a href="#" id="esqueci-senha" class="link-secundario">Esqueci minha senha</a>
+  </form>
+
+  <div id="quiz" class="quiz-container">
+    <div id="stats-sessao" style="display:none; margin-bottom:12px; font-size:0.9rem; font-weight:600;"></div>
+
+    <div class="top-actions">
+      <button id="btn-estatisticas" class="btn-primario" onclick="window.location.href='estatisticas.html'">Minhas estatísticas</button>
+      <button id="btn-simulados" class="btn-primario" onclick="window.location.href='simulados_inicial.html'">Simulados</button>
+    </div>
+
+    <div class="filters">
+      <select id="fLicenca">
+        <option value="">-- selecione licença --</option>
+        <option>Piloto Privado Avião</option>
+        <option>Piloto Comercial Avião</option>
+        <option>Comissário</option>
+        <option>Piloto de Linha Aérea</option>
+        <option>Airline Transport Pilot Licence (ATPL)</option>
+        <option>Piloto Privado Helicóptero</option>
+        <option>Instrutor de Voo de Avião (INVA)</option>
+        <option>Mecânico de Manutenção de Aeronaves</option>
+      </select>
+      <select id="fMateria"><option value="">-- selecione matéria --</option></select>
+      <input id="fTexto" type="text" placeholder="Digite parte do enunciado ou palavra-chave (opcional)" />
+      <button id="btn-filtrar" class="btn-primario">Filtrar</button>
+    </div>
+
+    <div id="question"></div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+
+    <div id="mostrar-resposta-correta-container" style="display:none; margin-top:10px;">
+      <button id="mostrar-resposta-correta" class="btn-secundario">Mostrar resposta correta</button>
+      <span id="letra-correta" style="margin-left:8px; font-weight:bold;"></span>
+    </div>
+
+    <button id="mostrar-comentario" class="btn-secundario">Mostrar comentário do professor</button>
+    <div id="comentario"></div>
+
+    <div style="display:flex; gap:10px; margin-top:15px;">
+      <button onclick="questaoAnterior()" class="btn-secundario">Anterior</button>
+      <button onclick="proximaQuestao()" class="btn-secundario">Próxima questão</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
+      signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp,
+      doc, updateDoc, documentId
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZcJS_AQYPWcYRsnoWljBgZRItBrCO9DE",
+      authDomain: "quiz-aviacao.firebaseapp.com",
+      projectId: "quiz-aviacao",
+      storageBucket: "quiz-aviacao.appspot.com",
+      messagingSenderId: "304277871974",
+      appId: "1:304277871974:web:98ebb69afe488439d53ca7",
+      measurementId: "G-B9NBQJD8KC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const ALGOLIA_APP_ID   = "TZ7DOM3RH4";
+    const ALGOLIA_SEARCH_KEY = "f461f67d18570c7fb13d4227b810ba4d";
+    const ALGOLIA_INDEX      = "questoes";
+    const algoliaClient = window.algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY);
+    const algoliaIndex  = algoliaClient.initIndex(ALGOLIA_INDEX);
+
+    /* === DEBUG SWITCH === */
+    const DEBUG = new URLSearchParams(location.search).has("debug");
+
+    // -------- Parser robusto para expiraEm --------
+    function normalizeExpiraEm(raw) {
+      try {
+        // Firestore Timestamp?
+        if (raw && typeof raw === "object" && typeof raw.toDate === "function") {
+          return raw.toDate();
+        }
+        // Objeto serializado {seconds, nanoseconds}
+        if (raw && typeof raw === "object" && typeof raw.seconds === "number") {
+          const ms = (raw.seconds * 1000) + Math.floor((raw.nanoseconds || 0) / 1e6);
+          return new Date(ms);
+        }
+        // Número: pode ser ms ou segundos
+        if (typeof raw === "number") {
+          const ms = raw < 1e12 ? raw * 1000 : raw; // heurística
+          return new Date(ms);
+        }
+        // String
+        if (typeof raw === "string") {
+          // tenta direto
+          let d = new Date(raw);
+          if (!isNaN(d.getTime())) return d;
+          // tenta ajustar "… às … UTC-3"
+          const iso = raw
+            .replace(" às ", " ")
+            .replace("UTC-3", "-03:00")
+            .replace("UTC−3", "-03:00");
+          d = new Date(iso);
+          if (!isNaN(d.getTime())) return d;
+        }
+      } catch (e) {
+        console.warn("[LOGIN] normalizeExpiraEm error:", e);
+      }
+      return new Date(0); // fallback seguro
+    }
+
+    document.getElementById("login-btn").onclick = async () => {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("password").value;
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, senha);
+        const user = cred.user;
+
+        console.log("[LOGIN] UID:", user.uid, "email:", user.email);
+
+        // 1) busca por UID (confiável)
+        let snap = await getDocs(
+          query(collection(db, "usuarios"), where("uid", "==", user.uid))
+        );
+        console.log("[LOGIN] Busca por UID -> size:", snap.size);
+
+        // 2) fallback por e-mail exato
+        if (snap.empty) {
+          snap = await getDocs(
+            query(collection(db, "usuarios"), where("email", "==", user.email))
+          );
+          console.log("[LOGIN] Fallback por e-mail exato -> size:", snap.size);
+        }
+
+        // 3) fallback por e-mail normalizado
+        if (snap.empty) {
+          const emailLower = (user.email || "").trim().toLowerCase();
+          snap = await getDocs(
+            query(collection(db, "usuarios"), where("email", "==", emailLower))
+          );
+          console.log("[LOGIN] Fallback por e-mail lower -> size:", snap.size);
+        }
+
+        if (snap.empty) {
+          console.warn("[LOGIN] Nenhum documento encontrado na coleção 'usuarios'");
+          await signOut(auth);
+          alert("Usuário não encontrado. Escolha um plano e teste por 7 dias com reembolso integral.");
+          if (!DEBUG) { window.location.href = "vendas.html"; }
+          return;
+        }
+
+        // Se houver mais de 1, tenta escolher um válido (ativo e não vencido)
+        const agora = new Date();
+        const escolhido =
+          snap.docs.find(d => {
+            const u = d.data();
+            const ativoC = (typeof u.ativo === "boolean") ? u.ativo : (u.ativo === "true");
+            const expC = normalizeExpiraEm(u.expiraEm);
+            console.log("[LOGIN] Candidato:", { id: d.id, ativo: ativoC, expiraEm: expC });
+            return ativoC && agora <= expC;
+          }) || snap.docs[0];
+
+        const dadosUsuario = escolhido.data();
+
+        // Logs para diagnóstico do tipo recebido
+        const raw = dadosUsuario.expiraEm;
+        console.log("[LOGIN][RAW] expiraEm valor bruto:", raw);
+        console.log("[LOGIN][TYPE] typeof:", typeof raw,
+          "| has toDate:", !!(raw && raw.toDate),
+          "| is Timestamp instance:",
+          (raw && raw.constructor && raw.constructor.name));
+
+        const ativo = (typeof dadosUsuario.ativo === "boolean") ? dadosUsuario.ativo : (dadosUsuario.ativo === "true");
+        const expiraEm = normalizeExpiraEm(raw);
+
+        console.log("[LOGIN] Escolhido doc:", escolhido.id,
+                    "| ativo:", ativo,
+                    "| expiraEm(normalizado):", expiraEm,
+                    "| epoch(ms):", expiraEm.getTime(),
+                    "| agora:", agora,
+                    "| agora>expiraEm?", (agora > expiraEm));
+
+        if (!ativo || agora > expiraEm) {
+          await signOut(auth);
+          alert("Sua assinatura está inativa ou expirada. Escolha um plano e teste por 7 dias com reembolso integral.");
+          if (!DEBUG) { window.location.href = "vendas.html"; }
+          return;
+        }
+
+        console.log("[LOGIN] Assinatura OK. Prosseguindo…");
+        // onAuthStateChanged exibirá o quiz
+      } catch (err) {
+        console.error("[LOGIN] Erro:", err);
+        alert("Erro ao fazer login: " + err.message);
+      }
+    };
+
+    document.getElementById("esqueci-senha").onclick = () => {
+      const email = document.getElementById("email").value;
+      if (!email) return alert("Digite seu email.");
+      sendPasswordResetEmail(auth, email)
+        .then(() => alert("Email de redefinição enviado."))
+        .catch((err) => alert("Erro: " + err.message));
+    };
+
+    document.getElementById("logout").onclick = () => {
+      signOut(auth).then(() => location.reload());
+    };
+
+    onAuthStateChanged(auth, user => {
+      const login = document.getElementById("login-form");
+      const quiz  = document.getElementById("quiz");
+      const logoutBtn = document.getElementById("logout");
+      if (user) {
+        // Ao autenticar, esconda o formulário de login e mostre o quiz
+        login.style.display = "none";
+        quiz.style.display  = "block";
+        logoutBtn.style.display = "block";
+        // Mostrar botão de reportar erro somente para usuários logados
+        const btnReportar = document.getElementById('btn-reportar');
+        if (btnReportar) {
+          btnReportar.style.display = 'block';
+        }
+      } else {
+        // Usuário deslogado: mostrar login e esconder quiz
+        login.style.display = "flex";
+        quiz.style.display  = "none";
+        logoutBtn.style.display = "none";
+        // Ocultar botão de reportar erro quando não autenticado
+        const btnReportar = document.getElementById('btn-reportar');
+        if (btnReportar) {
+          btnReportar.style.display = 'none';
+        }
+      }
+    });
+
+    /* ======= RESTO INALTERADO: filtros/questões/respostas ======= */
+
+    const materiasPorLicenca = {
+      "Piloto Privado Avião": ["Regulamentos de Tráfego Aéreo","Conhecimentos Técnicos","Meteorologia","Navegação Aérea","Teoria de Voo"],
+      "Piloto Comercial Avião": ["Conhecimentos Técnicos","Meteorologia","Regulamentos de Tráfego Aéreo","Teoria de Voo"],
+      "Comissário": ["Bloco 1 - Emergência, Segurança e Sobrevivência","Bloco 2 - Regulamentação da Profissão do Aeronauta","Bloco 3 - Aspectos Fisiológicos da Atividade de Comissário e Primeiros Socorros","Bloco 4 - Conhecimentos Gerais de Aeronave"],
+      "Piloto de Linha Aérea": ["Teoria de Voo"],
+      "Airline Transport Pilot Licence (ATPL)": ["Airline Transport Pilot Licence (ATPL)"],
+      "Piloto Privado Helicóptero": ["Regulamentos de Tráfego Aéreo","Conhecimentos Técnicos","Meteorologia","Navegação Aérea","Teoria de Voo"],
+      "Instrutor de Voo de Avião (INVA)": ["Instrutor de Voo de Avião (INVA)"],
+      "Mecânico de Manutenção de Aeronaves": ["Grupo Moto-Propulsor (GMP)","Módulo Básico","Módulo Célula","Aviônicos"]
+    };
+
+    let questoesFiltradas = [];
+    let indexAtual = 0;
+
+    let statsSessao = { resolvidas: 0, fez: 0, acertos: 0, erros: 0 };
+    function resetStatsSessao(){ statsSessao = {resolvidas:0, fez:0, acertos:0, erros:0}; atualizarStatsSessao(); }
+    function atualizarStatsSessao(){
+      const el=document.getElementById('stats-sessao');
+      if(!el) return;
+      const total=statsSessao.resolvidas;
+      const pct= total ? ((statsSessao.acertos/total)*100).toFixed(1)+'%' : '—';
+      el.textContent=`Resolvidas: ${statsSessao.resolvidas} | Fez: ${statsSessao.fez} | Acertou: ${statsSessao.acertos} | Errou: ${statsSessao.erros} | % Acerto: ${pct}`;
+      el.style.display='block';
+    }
+
+    document.getElementById('fLicenca').addEventListener('change',()=>{
+      const sel=document.getElementById('fMateria');
+      sel.innerHTML='<option value="">-- selecione matéria --</option>';
+      (materiasPorLicenca[document.getElementById('fLicenca').value]||[]).forEach(m=>{ sel.innerHTML+=`<option>${m}</option>`; });
+    });
+
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+
+    async function fetchQuestoesByIds(db, ids){
+      const chunks=[]; for(let i=0;i<ids.length;i+=10) chunks.push(ids.slice(i,i+10));
+      let allDocs=[];
+      for(const ch of chunks){
+        const snap=await getDocs(query(collection(db,"questoes"), where(documentId(),"in",ch)));
+        allDocs=allDocs.concat(snap.docs.map(d=>({id:d.id,...d.data()})));
+      }
+      const map=new Map(allDocs.map(q=>[q.id,q]));
+      return ids.map(id=>map.get(id)).filter(Boolean);
+    }
+
+    document.getElementById('btn-filtrar').onclick = async () => {
+      const lic=document.getElementById('fLicenca').value;
+      const mat=document.getElementById('fMateria').value;
+      const texto=(document.getElementById('fTexto')?.value||"").trim();
+
+      if(!lic && !mat && !texto) return alert('Escolha ao menos licença/matéria ou digite um termo.');
+      const user=auth.currentUser; if(!user) return alert("Usuário não autenticado.");
+
+      try{
+        if(texto.length>=2){
+          const { hits } = await algoliaIndex.search(texto, {
+            attributesToRetrieve:['objectID','licenca','materia'],
+            hitsPerPage: 1000
+          });
+          const hitsFiltrados = hits.filter(h =>
+            (!lic || h.licenca === lic) &&
+            (!mat || h.materia === mat)
+          );
+          const ids = hitsFiltrados.map(h=>h.objectID);
+          questoesFiltradas = ids.length ? await fetchQuestoesByIds(db, ids) : [];
+          if(ids.length===0) alert("Nenhuma questão encontrada para esse termo.");
+        }else{
+          const filtros=[]; if(lic) filtros.push(where('licenca','==',lic)); if(mat) filtros.push(where('materia','==',mat));
+          const snap=await getDocs(query(collection(db,"questoes"), ...filtros));
+          questoesFiltradas=snap.docs.map(d=>({id:d.id,...d.data()}));
+        }
+      }catch(e){
+        console.error(e);
+        alert("Erro na busca. Veja o console.");
+        return;
+      }
+
+      shuffle(questoesFiltradas); indexAtual=0; resetStatsSessao(); mostrarQuestao();
+    };
+
+    window.questaoAnterior=()=>{ indexAtual=(indexAtual-1+questoesFiltradas.length)%questoesFiltradas.length; mostrarQuestao(); }
+    window.proximaQuestao=()=>{ indexAtual=(indexAtual+1)%questoesFiltradas.length; mostrarQuestao(); }
+
+    function mostrarQuestao(){
+      const q = questoesFiltradas[indexAtual];
+      const questionEl = document.getElementById('question');
+      const optionsEl = document.getElementById('options');
+      const feedbackEl = document.getElementById('feedback');
+      const comentarioEl = document.getElementById('comentario');
+      const cont = document.getElementById('mostrar-resposta-correta-container');
+      const letraSpan = document.getElementById('letra-correta');
+
+      // reset da área quando não há questão
+      if (!q) {
+        questionEl.textContent = '';
+        optionsEl.innerHTML = '';
+        feedbackEl.textContent = '';
+        comentarioEl.textContent = '';
+        cont.style.display = 'none';
+        letraSpan.textContent = '';
+        return;
+      }
+
+      // prepara a questão
+      questionEl.textContent = q.enunciado || '';
+      feedbackEl.textContent = '';
+      comentarioEl.textContent = '';
+      cont.style.display = 'none';
+      letraSpan.textContent = '';
+      optionsEl.innerHTML = '';
+
+      // estado local: seleção e envio
+      let selectedLetter = null;
+      let submitted = false;
+
+      // monta alternativas (apenas selecionam; não conferem)
+      ['A', 'B', 'C', 'D'].forEach((letra, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = `${letra}: ${q.alternativas?.[i] ?? ''}`;
+        btn.className = 'btn-secundario';
+        btn.dataset.letra = letra;
+        btn.onclick = () => {
+          if (submitted) return; // após envio, não permite trocar
+          // garante seleção única
+          optionsEl.querySelectorAll('button').forEach(b => b.classList.remove('option-selected'));
+          btn.classList.add('option-selected');
+          selectedLetter = letra;
+          submitBtn.disabled = false; // habilita "Enviar" quando houver seleção
+        };
+        optionsEl.appendChild(btn);
+      });
+
+      // botão "Enviar resposta" (só confere e contabiliza ao clicar)
+      const submitBtn = document.createElement('button');
+      submitBtn.id = 'btn-enviar-resposta';
+      submitBtn.className = 'btn-primario';
+      submitBtn.textContent = 'Enviar resposta';
+      submitBtn.style.marginTop = '8px';
+      submitBtn.disabled = true; // começa desabilitado até selecionar algo
+      submitBtn.onclick = async () => {
+        if (!selectedLetter || submitted) return;
+        submitted = true;
+        // confere resposta
+        const corretaLetra = (typeof q.correta === 'number')
+          ? String.fromCharCode(65 + q.correta)
+          : q.correta;
+        const acertou = (selectedLetter === corretaLetra);
+        feedbackEl.textContent = acertou ? '✅ Correta!' : '❌ Errada.';
+        if (!acertou) {
+          // permite revelar a correta (comportamento existente mantido)
+          cont.style.display = 'block';
+          const btnMostrar = document.getElementById('mostrar-resposta-correta');
+          btnMostrar.disabled = false;
+          btnMostrar.onclick = () => { letraSpan.textContent = corretaLetra; btnMostrar.disabled = true; };
+        }
+        // desabilita troca/novas interações nessa questão
+        optionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+        submitBtn.disabled = true;
+        // grava estatística exatamente agora (no envio)
+        try {
+          await addDoc(collection(db, 'respostas'), {
+            uid: auth.currentUser.uid,
+            questaoId: q.id,
+            licenca: q.licenca || '',
+            materia: q.materia || '',
+            acertou,
+            correta: corretaLetra,
+            escolhida: selectedLetter,
+            timestamp: serverTimestamp()
+          });
+        } catch (e) {
+          console.error('Erro ao gravar resposta:', e);
+        }
+        // atualiza estatísticas da sessão
+        statsSessao.resolvidas++;
+        statsSessao.fez++;
+        if (acertou) statsSessao.acertos++; else statsSessao.erros++;
+        atualizarStatsSessao();
+      };
+      // insere o botão logo abaixo das alternativas
+      optionsEl.appendChild(submitBtn);
+
+      // MathJax (se houver fórmulas)
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        try { MathJax.typesetPromise([questionEl, optionsEl]); } catch (e) {}
+      }
+
+      // mantém o comportamento do "Mostrar comentário do professor"
+      document.getElementById('mostrar-comentario').onclick = () => {
+        comentarioEl.innerHTML = '';
+        const p = document.createElement('p');
+        // Preserve newline characters in the comment by using pre-wrap
+        p.style.whiteSpace = 'pre-wrap';
+        p.textContent = q.comentario || '';
+        comentarioEl.appendChild(p);
+        if (window.MathJax && window.MathJax.typesetPromise) { try { MathJax.typesetPromise([comentarioEl]); } catch (e) {} }
+        const user = auth.currentUser;
+        if (user && user.email === "questoesdeaviacao@gmail.com") {
+          const btnEditar = document.createElement("button");
+          btnEditar.textContent = "Editar comentário";
+          btnEditar.className = "btn-secundario";
+          btnEditar.style.marginTop = "10px";
+          btnEditar.onclick = () => {
+            const textarea = document.createElement("textarea");
+            textarea.value = q.comentario || '';
+            textarea.style.width = "100%";
+            textarea.style.minHeight = "80px";
+            const btnSalvar = document.createElement("button");
+            btnSalvar.textContent = "Salvar";
+            btnSalvar.className = "btn-primario";
+            btnSalvar.style.marginTop = "8px";
+            btnSalvar.onclick = async () => {
+              const novo = textarea.value.trim(); if (!novo) return alert("Comentário não pode estar vazio.");
+              try {
+                const ref = doc(db, "questoes", q.id);
+                await updateDoc(ref, { comentario: novo });
+                alert("Comentário atualizado com sucesso!");
+                p.textContent = novo;
+                comentarioEl.innerHTML = '';
+                comentarioEl.appendChild(p);
+                comentarioEl.appendChild(btnEditar);
+                if (window.MathJax && window.MathJax.typesetPromise) { try { MathJax.typesetPromise([comentarioEl]); } catch (e) {} }
+              } catch (err) {
+                alert("Erro ao salvar: " + err.message);
+              }
+            };
+            comentarioEl.innerHTML = '';
+            comentarioEl.appendChild(textarea);
+            comentarioEl.appendChild(btnSalvar);
+            if (window.MathJax && window.MathJax.typesetPromise) { try { MathJax.typesetPromise([comentarioEl]); } catch (e) {} }
+          };
+          comentarioEl.appendChild(btnEditar);
+          if (window.MathJax && window.MathJax.typesetPromise) { try { MathJax.typesetPromise([comentarioEl]); } catch (e) {} }
+        }
+      };
+      // mantém atualização do botão "Reportar erro" com o enunciado atual
+      const btnReportar = document.getElementById('btn-reportar');
+      if (btnReportar && q) {
+        btnReportar.onclick = () => {
+          const userAtual = auth.currentUser;
+          const emailUser = userAtual?.email || '';
+          const enunciadoOriginal = (q.enunciado || '').slice(0, 500);
+          const url = `comunicaerro.html?email=${encodeURIComponent(emailUser)}&enunciado=${encodeURIComponent(enunciadoOriginal)}`;
+          window.open(url, '_blank');
+        };
+      }
+    }
+  </script>
+
+  <script>
+    // Configuração do MathJax para aceitar fórmulas em modo inline e display.
+    // Além de '$…$' e '\\(…\\)' agora também suportamos '$$…$$' e '\\[…\\]'.
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<button id="btn-reportar" title="Reportar erro na questão"
+  style="
+    display: none;
+    position: fixed;
+    bottom: 12px;
+    right: 14px;
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 99;
+    cursor: pointer;
+    opacity: 0.85;
+  ">Reportar erro</button>
+<!-- Rodapé com Fale Conosco + WhatsApp + Instagram -->
+<div style="margin-top: 40px; display: flex; justify-content: center; gap: 12px; padding-bottom: 20px;">
+  
+  <!-- Botão Fale Conosco -->
+  <button id="btn-faleconosco" title="Fale com a gente"
+    onclick="window.open('faleconosco.html', '_blank')"
+    style="
+      background: var(--verde);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+    ">
+    Fale conosco
+  </button>
+
+  <!-- Botão WhatsApp -->
+  <a id="btn-whatsapp" title="Fale via WhatsApp"
+    href="https://wa.me/5561920052273" target="_blank"
+    style="
+      width: 42px;
+      height: 42px;
+      background: var(--verde);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      text-decoration: none;
+      overflow: hidden;
+    ">
+    <img src="WhatsApp.svg" alt="WhatsApp" style="height: 60%; width: auto;" />
+  </a>
+
+  <!-- Botão Instagram -->
+  <a id="btn-instagram" title="Visite nosso Instagram"
+    href="https://www.instagram.com/questoesdeaviacao" target="_blank"
+    style="
+      width: 42px;
+      height: 42px;
+      background: var(--verde);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      text-decoration: none;
+      overflow: hidden;
+    ">
+    <img src="instagram.svg" alt="Instagram" style="height: 60%; width: auto;" />
+  </a>
+
+</div>
+
+
+</body>
+</html>

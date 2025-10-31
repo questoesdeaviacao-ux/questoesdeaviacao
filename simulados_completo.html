@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulados – Provas Completas</title>
+  <!--
+    Página de geração de simulados completos.
+    Esta tela lista cada tipo de licença/habilitação e permite iniciar
+    um simulado completo com número de questões e tempo total já
+    definidos de acordo com a Portaria 9.592/SPL. A interface mantém
+    o mesmo estilo de cores, cantos arredondados e botões do resto do
+    portal.
+  -->
+  <style>
+    :root {
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+    }
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      position: relative;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.04;
+      z-index: -1;
+    }
+    h1 {
+      text-align: center;
+      color: var(--verde);
+      margin-top: 60px;
+      margin-bottom: 30px;
+      font-size: 2rem;
+    }
+    .btn {
+      background: var(--verde);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 5px;
+      font-weight: 600;
+      transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn:hover {
+      transform: scale(1.03);
+      background: var(--verde-claro);
+    }
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+    /* Grid de cartões de provas */
+    #exam-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .exam-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      width: 280px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .exam-card h3 {
+      color: var(--verde);
+      margin: 10px 0 6px;
+      font-size: 1.1rem;
+    }
+    .exam-card .tempo {
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    .exam-card .btn-exam {
+      width: 100%;
+      margin: 0;
+    }
+    /* Conteúdo do simulado */
+    #simulado {
+      display: none;
+    }
+    #tempo-total {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--verde);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #cronometro-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      text-align: right;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+    #cronometro {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    /* Estilos das questões (copiados de simulado.html) */
+    #questoes div {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+    }
+    #questoes strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .resultado {
+      margin-top: 8px;
+      font-weight: bold;
+    }
+    .comentario {
+      margin-top: 4px;
+      font-style: italic;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- Botão Voltar -->
+  <button class="btn back-btn" onclick="history.back()">⬅ Voltar</button>
+
+  <!-- Título principal -->
+  <h1>Simulados – Provas Completas</h1>
+
+  <!-- Lista de provas disponíveis -->
+  <div id="exam-list">
+    <!-- Os cartões serão inseridos via script -->
+  </div>
+
+  <!-- Container de tempo total do exame -->
+  <div id="tempo-total"></div>
+
+  <!-- Cronômetro para o simulado -->
+  <div id="cronometro-container" style="display:none;">
+    <div id="cronometro">🕒 00:00</div>
+    <button class="btn" id="start-timer">Iniciar</button>
+    <button class="btn" id="pause-timer" style="display:none;">Pausar</button>
+    <button class="btn" id="reset-timer" style="display:none;">Zerar</button>
+  </div>
+
+  <!-- Área do simulado -->
+  <div id="simulado">
+    <div id="questoes"></div>
+    <button class="btn" onclick="submeterSimulado()">Submeter resoluções</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    // Configuração Firebase (mesma do simulado.html)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZcJS_AQYPWcYRsnoWljBgZRItBrCO9DE",
+      authDomain: "quiz-aviacao.firebaseapp.com",
+      projectId: "quiz-aviacao",
+      storageBucket: "quiz-aviacao.appspot.com",
+      messagingSenderId: "304277871974",
+      appId: "1:304277871974:web:98ebb69afe488439d53ca7"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let questoesFinal = [];
+    let blocos = [];
+
+    /**
+     * Verifica assinatura ativa semelhante ao simulado.html.
+     */
+    async function verificarAssinatura(email) {
+      try {
+        const snap = await getDocs(query(collection(db, "usuarios"), where("email", "==", email)));
+        if (snap.empty) {
+          alert("Usuário não encontrado.");
+          location.href = "quiz.html";
+          return false;
+        }
+        const dados = snap.docs[0].data();
+        const ativo = dados.ativo;
+        const expiraEm = (dados.expiraEm && dados.expiraEm.toDate) ? dados.expiraEm.toDate() : new Date(0);
+        const agora = new Date();
+        if (!ativo || agora > expiraEm) {
+          alert("Sua assinatura está inativa ou expirada.");
+          location.href = "quiz.html";
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Erro ao verificar assinatura:", error);
+        alert("Erro ao verificar assinatura. Tente novamente mais tarde.");
+        location.href = "quiz.html";
+        return false;
+      }
+    }
+
+    // Objeto com as configurações de cada prova completa.
+    const provas = {
+      "PPA": {
+        nomeExibicao: "Piloto Privado de Avião (PPA)",
+        licenca: "Piloto Privado Avião",
+        tempoTexto: "3h 0min",
+        tempoMin: 180,
+        blocos: [
+          { materia: "Regulamentos de Tráfego Aéreo", quantidade: 20 },
+          { materia: "Meteorologia", quantidade: 20 },
+          { materia: "Navegação Aérea", quantidade: 20 },
+          { materia: "Teoria de Voo", quantidade: 20 },
+          { materia: "Conhecimentos Técnicos", quantidade: 20 }
+        ]
+      },
+      "PPH": {
+        nomeExibicao: "Piloto Privado de Helicóptero (PPH)",
+        licenca: "Piloto Privado Helicóptero",
+        tempoTexto: "3h 0min",
+        tempoMin: 180,
+        blocos: [
+          { materia: "Regulamentos de Tráfego Aéreo", quantidade: 20 },
+          { materia: "Meteorologia", quantidade: 20 },
+          { materia: "Navegação Aérea", quantidade: 20 },
+          { materia: "Teoria de Voo", quantidade: 20 },
+          { materia: "Conhecimentos Técnicos", quantidade: 20 }
+        ]
+      },
+      "PCA": {
+        nomeExibicao: "Piloto Comercial de Avião IFR (PCA/IFR)",
+        licenca: "Piloto Comercial Avião",
+        tempoTexto: "3h 45min",
+        tempoMin: 225,
+        blocos: [
+          { materia: "Regulamentos de Tráfego Aéreo", quantidade: 20 },
+          { materia: "Meteorologia", quantidade: 20 },
+          { materia: "Navegação Aérea", quantidade: 20 },
+          { materia: "Teoria de Voo", quantidade: 20 },
+          { materia: "Conhecimentos Técnicos", quantidade: 20 }
+        ]
+      },
+      "PLA": {
+        nomeExibicao: "Piloto de Linha Aérea (PLA)",
+        licenca: "Piloto de Linha Aérea",
+        tempoTexto: "1h 0min",
+        tempoMin: 60,
+        blocos: [
+          { materia: "Regulamentos de Tráfego Aéreo", quantidade: 20 },
+          { materia: "Performance, Peso e Balanceamento, Meteorologia e Teoria de Voo", quantidade: 20 }
+        ]
+      },
+      "INVA": {
+        nomeExibicao: "Instrutor de Voo (INVA)",
+        licenca: "Instrutor de Voo de Avião (INVA)",
+        tempoTexto: "0h 30min",
+        tempoMin: 30,
+        blocos: [
+          { materia: "Conhecimentos Aeronáuticos e Pedagógicos", quantidade: 20 }
+        ]
+      },
+      "CMS": {
+        nomeExibicao: "Comissário de Voo (CMS)",
+        licenca: "Comissário",
+        tempoTexto: "2h 0min",
+        tempoMin: 120,
+        // Para a prova de Comissário os nomes das matérias devem seguir
+        // exatamente os blocos definidos pela ANAC e usados no banco de dados.
+        // Dessa forma as consultas recuperam corretamente as questões.
+        blocos: [
+          { materia: "Bloco 1 - Emergência, Segurança e Sobrevivência", quantidade: 20 },
+          { materia: "Bloco 2 - Regulamentação da Profissão do Aeronauta", quantidade: 20 },
+          { materia: "Bloco 3 - Aspectos Fisiológicos da Atividade de Comissário e Primeiros Socorros", quantidade: 20 },
+          { materia: "Bloco 4 - Conhecimentos Gerais de Aeronave", quantidade: 20 }
+        ]
+      },
+      "MMA_AVI": {
+        nomeExibicao: "MMA – Grupo Aviônicos",
+        licenca: "Mecânico de Manutenção de Aeronaves",
+        tempoTexto: "1h 30min",
+        tempoMin: 90,
+        blocos: [
+          { materia: "Módulo Básico", quantidade: 20 },
+          { materia: "Aviônicos 1", quantidade: 20 },
+          { materia: "Aviônicos 2", quantidade: 20 }
+        ]
+      },
+      "MMA_CEL": {
+        nomeExibicao: "MMA – Grupo Célula",
+        licenca: "Mecânico de Manutenção de Aeronaves",
+        tempoTexto: "1h 30min",
+        tempoMin: 90,
+        blocos: [
+          { materia: "Módulo Básico", quantidade: 20 },
+          { materia: "Célula 1", quantidade: 20 },
+          { materia: "Célula 2", quantidade: 20 }
+        ]
+      },
+      "MMA_GMP": {
+        nomeExibicao: "MMA – Grupo Motopropulsor",
+        licenca: "Mecânico de Manutenção de Aeronaves",
+        tempoTexto: "1h 30min",
+        tempoMin: 90,
+        blocos: [
+          { materia: "Módulo Básico", quantidade: 20 },
+          { materia: "Grupo Motopropulsor 1", quantidade: 20 },
+          { materia: "Grupo Motopropulsor 2", quantidade: 20 }
+        ]
+      }
+    };
+
+    // Cria os cartões na interface
+    function montarCartoes() {
+      const examListEl = document.getElementById("exam-list");
+      Object.keys(provas).forEach(chave => {
+        const prova = provas[chave];
+        const card = document.createElement("div");
+        card.className = "exam-card";
+        const titulo = document.createElement("h3");
+        titulo.textContent = prova.nomeExibicao;
+        const tempo = document.createElement("div");
+        tempo.className = "tempo";
+        tempo.textContent = `Tempo total: ${prova.tempoTexto}`;
+        const botao = document.createElement("button");
+        botao.className = "btn btn-exam";
+        botao.textContent = "Gerar simulado";
+        botao.addEventListener("click", () => iniciarSimuladoCompleto(chave));
+        card.appendChild(titulo);
+        card.appendChild(tempo);
+        card.appendChild(botao);
+        examListEl.appendChild(card);
+      });
+    }
+
+    // Autenticação e verificação de assinatura ao carregar
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Você precisa estar logado.");
+        location.href = "quiz.html";
+        return;
+      }
+      const temAssinatura = await verificarAssinatura(user.email);
+      if (!temAssinatura) return;
+      currentUser = user;
+      montarCartoes();
+    });
+
+    /**
+     * Embaralha array no lugar.
+     */
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    /**
+     * Gera o simulado completo com base na prova escolhida.
+     * Oculta a lista de provas, exibe o tempo total, inicia o cronômetro (opcional)
+     * e chama gerarSimulado() para coletar as questões e renderizar.
+     */
+    async function iniciarSimuladoCompleto(chave) {
+      const prova = provas[chave];
+      // Define blocos globais a partir da configuração da prova
+      blocos = [];
+      prova.blocos.forEach(b => {
+        blocos.push({ licenca: prova.licenca, materia: b.materia, quantidade: b.quantidade });
+      });
+      // Atualiza informação de tempo total
+      const tempoTotalEl = document.getElementById("tempo-total");
+      tempoTotalEl.textContent = `Tempo total do exame: ${prova.tempoTexto}`;
+      tempoTotalEl.style.display = 'block';
+      // Esconde lista de provas e mostra cronômetro e simulado
+      document.getElementById("exam-list").style.display = "none";
+      document.getElementById("cronometro-container").style.display = "block";
+      document.getElementById("simulado").style.display = "block";
+      // Reseta cronômetro
+      resetarCronometro();
+      // Gera e exibe questões
+      await gerarSimulado();
+        // Se for simulado de Piloto Comercial Avião, exibe o aviso
+  if (chave === "PCA") {
+    const tempoTotalEl = document.getElementById("tempo-total");
+    const aviso = document.createElement("div");
+    aviso.textContent = "As questões de navegação aérea estão passando por revisão e estarão disponíveis em breve.";
+    aviso.style.backgroundColor = "rgba(47, 79, 47, 0.1)";
+    aviso.style.border = "1px solid var(--verde)";
+    aviso.style.padding = "12px";
+    aviso.style.marginBottom = "15px";
+    aviso.style.borderRadius = "10px";
+    aviso.style.color = "var(--verde)";
+    aviso.style.fontWeight = "600";
+    aviso.style.textAlign = "center";
+    aviso.style.fontSize = "1rem";
+    tempoTotalEl.insertAdjacentElement("afterend", aviso);
+  }
+
+    }
+
+    /**
+     * Monta questoesFinal com base nos blocos e exibe na tela.
+     * Utiliza mesma lógica do simulado.html, com query ao Firestore.
+     */
+    async function gerarSimulado() {
+      if (blocos.length === 0) {
+        alert("Nenhuma prova selecionada.");
+        return;
+      }
+      questoesFinal = [];
+      for (const b of blocos) {
+        let filtros = [where("licenca", "==", b.licenca)];
+        if (b.materia) filtros.push(where("materia", "==", b.materia));
+        const snap = await getDocs(query(collection(db, "questoes"), ...filtros));
+        const todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        shuffle(todas);
+        questoesFinal.push(...todas.slice(0, b.quantidade));
+      }
+      exibirQuestoes();
+    }
+
+    /**
+     * Rende riza as questões no DOM, reaproveitando o estilo de simulado.html.
+     */
+    function exibirQuestoes() {
+      const container = document.getElementById("questoes");
+      container.innerHTML = "";
+      questoesFinal.forEach((q, index) => {
+        const cardDiv = document.createElement("div");
+        cardDiv.id = `card-${q.id}`;
+        const enunciadoEl = document.createElement("strong");
+        enunciadoEl.innerHTML = `${index + 1}. ${q.enunciado}`;
+        cardDiv.appendChild(enunciadoEl);
+        cardDiv.appendChild(document.createElement("br"));
+        cardDiv.appendChild(document.createElement("br"));
+        ["A", "B", "C", "D"].forEach((letra, idx) => {
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `q${q.id}`;
+          input.value = letra;
+          label.appendChild(input);
+          let alternativaTexto = '';
+          if (q.alternativas && typeof q.alternativas === 'object') {
+            alternativaTexto = q.alternativas[idx] ?? q.alternativas[idx.toString()] ?? '';
+          }
+          if (!alternativaTexto) {
+            alternativaTexto = q[idx] ?? q[idx.toString()] ?? q[letra.toLowerCase()] ?? q[letra] ?? '';
+          }
+          label.appendChild(document.createTextNode(` ${letra}) ${alternativaTexto}`));
+          cardDiv.appendChild(label);
+          cardDiv.appendChild(document.createElement("br"));
+        });
+        const resultadoEl = document.createElement("div");
+        resultadoEl.className = "resultado";
+        cardDiv.appendChild(resultadoEl);
+        const comentarioEl = document.createElement("div");
+        comentarioEl.className = "comentario";
+        cardDiv.appendChild(comentarioEl);
+        container.appendChild(cardDiv);
+      });
+      // Renderiza LaTeX caso exista
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        try {
+          MathJax.typesetPromise([container]);
+        } catch (e) {
+          /* Ignora erros do MathJax */
+        }
+      }
+    }
+
+    /**
+     * Submete o simulado, calcula acertos e salva estatísticas no Firestore.
+     * Igual ao simulado.html.
+     */
+    async function submeterSimulado() {
+      let acertos = 0;
+      const submitBtn = document.querySelector("#simulado button.btn");
+      if (submitBtn) submitBtn.disabled = true;
+      for (const q of questoesFinal) {
+        const marcada = document.querySelector(`input[name="q${q.id}"]:checked`);
+        const userResposta = marcada ? marcada.value : null;
+        let letraCorreta;
+        if (typeof q.correta === 'number' || (typeof q.correta === 'string' && !isNaN(parseInt(q.correta)))) {
+          const idxCorreta = parseInt(q.correta);
+          const letrasMap = ["A", "B", "C", "D"];
+          letraCorreta = letrasMap[idxCorreta] ?? q.correta;
+        } else {
+          letraCorreta = q.correta;
+        }
+        const acertou = userResposta && (letraCorreta === userResposta);
+        if (acertou) acertos++;
+        const card = document.getElementById(`card-${q.id}`);
+        if (card) {
+          card.querySelectorAll('input[type="radio"]').forEach(inp => inp.disabled = true);
+          const resEl = card.querySelector('.resultado');
+          const comEl = card.querySelector('.comentario');
+          if (resEl) {
+            let corretaTexto = '';
+            if (q.alternativas && typeof q.alternativas === 'object') {
+              const idx = ["A","B","C","D"].indexOf(letraCorreta);
+              corretaTexto = q.alternativas[idx] ?? q.alternativas[idx?.toString()] ?? '';
+            }
+            if (!corretaTexto) {
+              const idx = ["A","B","C","D"].indexOf(letraCorreta);
+              corretaTexto = q[idx] ?? q[idx?.toString()] ?? q[letraCorreta.toLowerCase()] ?? q[letraCorreta] ?? '';
+            }
+            if (acertou) {
+              resEl.textContent = "Correto!";
+              resEl.style.color = "green";
+            } else {
+              resEl.textContent = "Incorreto.";
+              resEl.style.color = "red";
+            }
+            let comentarioTexto = '';
+            if (q.comentario) {
+              comentarioTexto = `\nComentário: ${q.comentario}`;
+            }
+            comEl.textContent = `Resposta correta: ${letraCorreta}) ${corretaTexto}${comentarioTexto}`;
+            if (window.MathJax && window.MathJax.typesetPromise) {
+              try {
+                MathJax.typesetPromise([comEl]);
+              } catch (e) {
+                /* ignora erros do MathJax */
+              }
+            }
+          }
+        }
+        await addDoc(collection(db, "respostas"), {
+          uid: currentUser.uid,
+          questaoId: q.id,
+          acertou: !!acertou,
+          materia: q.materia,
+          licenca: q.licenca,
+          resposta: userResposta || null,
+          data: serverTimestamp()
+        });
+      }
+      const porcentagem = Math.round((acertos / questoesFinal.length) * 100);
+      await addDoc(collection(db, "simulados"), {
+        uid: currentUser.uid,
+        total: questoesFinal.length,
+        acertos,
+        porcentagem,
+        data: serverTimestamp()
+      });
+      alert(`Simulado submetido!\nVocê acertou ${acertos}/${questoesFinal.length} (${porcentagem}%)`);
+    }
+
+    // Expondo funções ao escopo global para permitir chamadas inline
+    window.iniciarSimuladoCompleto = iniciarSimuladoCompleto;
+    window.submeterSimulado = submeterSimulado;
+
+    // Cronômetro (mesma lógica do simulado.html)
+    let timer = null;
+    let segundos = 0;
+    const cronometroEl = document.getElementById("cronometro");
+    const startBtn = document.getElementById("start-timer");
+    const pauseBtn = document.getElementById("pause-timer");
+    const resetBtn = document.getElementById("reset-timer");
+
+    function formatarTempo(seg) {
+      const m = Math.floor(seg / 60).toString().padStart(2, "0");
+      const s = (seg % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function resetarCronometro() {
+      clearInterval(timer);
+      timer = null;
+      segundos = 0;
+      cronometroEl.textContent = "🕒 00:00";
+      startBtn.textContent = "Iniciar";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+      resetBtn.style.display = "none";
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        segundos++;
+        cronometroEl.textContent = "🕒 " + formatarTempo(segundos);
+      }, 1000);
+      startBtn.style.display = "none";
+      pauseBtn.style.display = "inline-block";
+      resetBtn.style.display = "inline-block";
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      timer = null;
+      startBtn.textContent = "Continuar";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetarCronometro();
+    });
+  </script>
+  <!-- Configuração do MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Questões de Aviação — Tutoriais</title>
+
+  <!-- Carrega a mesma fonte usada nas outras páginas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Paleta de cores consistente com o restante do site */
+    :root {
+      --fundo-claro: #f0f0f0;
+      --texto-claro: #004400;
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+      /* Altura da barra de navegação fixa */
+      --topbar-h: 66px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--fundo-claro);
+      color: var(--texto-claro);
+      /* Adiciona espaço no topo para a barra de navegação fixa */
+      padding-top: var(--topbar-h);
+      position: relative;
+      min-height: 100vh;
+    }
+    /* Imagem de fundo translúcida no corpo */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.30;
+      z-index: -1;
+    }
+
+    /* ===== Barra de navegação superior ===== */
+    .nav-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.7);
+      border-bottom: 1px solid #ccc;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      backdrop-filter: saturate(140%) blur(6px);
+    }
+    .btn-small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background-color: var(--verde);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      height: 38px;
+      text-decoration: none;
+    }
+    .btn-small:hover {
+      background-color: var(--verde-claro);
+      transform: scale(1.02);
+    }
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon img {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ===== Título com glassmorphism ===== */
+    header {
+      text-align: center;
+      background: transparent;
+      padding: 32px 12px 8px;
+    }
+    .title-card {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+    }
+    header h1 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--verde);
+      font-size: clamp(28px, 5vw, 52px);
+      line-height: 1.1;
+      margin: 0;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    header h2 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 400;
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: #2d3a2d;
+      opacity: 0.9;
+      margin-top: 6px;
+      letter-spacing: 0.2px;
+    }
+    .accent {
+      width: min(42ch, 80vw);
+      height: 4px;
+      margin: 8px auto 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--verde) 0%, var(--verde-claro) 100%);
+      box-shadow: 0 2px 8px rgba(47, 79, 47, 0.25);
+    }
+
+    /* ===== Layout da seção de tutoriais ===== */
+    .tutorial-section {
+      max-width: 1100px;
+      margin: 40px auto 80px;
+      padding: 0 20px;
+      display: grid;
+      /* Por padrão uma coluna para celulares */
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    /* A partir de 720px de largura de tela, exibe dois cards lado a lado */
+    @media (min-width: 720px) {
+      .tutorial-section {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .tutorial-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(220, 220, 220, 0.8);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      backdrop-filter: blur(6px) saturate(140%);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+    }
+    .tutorial-card h3 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--verde);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    /* Container mantendo proporção 16:9 para o vídeo */
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      background: #eaeaea;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .note {
+      font-size: 0.85rem;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de navegação fixa (igual à quiz.html) -->
+  <div class="nav-top">
+    <a class="btn-small" href="quiz.html">Portal do Aluno</a>
+    <a class="btn-small" href="materias.html">Matérias</a>
+    <a class="btn-small" href="vendas.html">Planos</a>
+    <a class="btn-small" href="tutoriais.html" style="background-color: var(--verde-claro);">Tutoriais</a>
+    <a class="btn-small" href="faleconosco.html" target="_blank">Fale Conosco</a>
+    <a href="https://wa.me/5561920052273" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
+      <img src="WhatsApp.svg" alt="WhatsApp">
+    </a>
+    <a href="https://www.instagram.com/questoesdeaviacao" target="_blank" title="Nosso Instagram" class="btn-small btn-icon">
+      <img src="instagram.svg" alt="Instagram">
+    </a>
+  </div>
+
+  <!-- Cabeçalho com título principal e subtítulo -->
+  <header>
+    <div class="title-card">
+      <div class="title-row">
+        <h1>QUESTÕES DE AVIAÇÃO</h1>
+      </div>
+      <h2>Tutoriais</h2>
+    </div>
+    <div class="accent"></div>
+  </header>
+
+  <!-- Seção com os cards de tutorial -->
+  <section class="tutorial-section">
+    <!-- Card: Filtrar questões -->
+    <div class="tutorial-card">
+      <h3>Como filtrar questões</h3>
+      <div class="video-wrapper">
+        <iframe src="https://www.youtube.com/embed/C_nmqrHk0Nk?si=F7oOQxQu8BWvhTaZ"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+      </div>
+      <p class="note">Assista a este tutorial para aprender a filtrar questões na plataforma.</p>
+    </div>
+    <!-- Card: Gerar simulados -->
+    <div class="tutorial-card">
+      <h3>Como gerar simulados</h3>
+      <div class="video-wrapper">
+        <iframe src="https://www.youtube.com/embed/ZgzQLK_wRgM?si=RMJRTa5CnHRBnzxV"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+      </div>
+      <p class="note">Veja como personalizar e criar simulados completos com os filtros desejados.</p>
+    </div>
+    <!-- Card: Visualizar estatísticas -->
+    <div class="tutorial-card">
+      <h3>Como visualizar estatísticas</h3>
+      <div class="video-wrapper">
+        <iframe src="https://www.youtube.com/embed/u8NTbw3y4zE?si=rwjOBHQg0fqrLomg"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+      </div>
+      <p class="note">Descubra como interpretar e acompanhar seu desempenho em gráficos e relatórios.</p>
+    </div>
+    <!-- Card: Mudar de plano -->
+    <div class="tutorial-card">
+      <h3>Como mudar de plano</h3>
+      <div class="video-wrapper">
+        <iframe src="https://www.youtube.com/embed/0-np-Hql5OA?si=ZYPIO2dyyoh7-Tad"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+      </div>
+      <p class="note">Saiba como alterar seu plano de assinatura facilmente pela plataforma.</p>
+    </div>
+    <!-- Card: Cancelar o plano -->
+    <div class="tutorial-card">
+      <h3>Como cancelar o plano</h3>
+      <div class="video-wrapper">
+        <iframe src="https://www.youtube.com/embed/9yXg7ToGfi4?si=BUxRNK0PLLodneyA"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+      </div>
+      <p class="note">Neste vídeo, aprenda o passo a passo para cancelar sua assinatura quando desejar.</p>
+    </div>
+  </section>
+
+</body>
+</html>

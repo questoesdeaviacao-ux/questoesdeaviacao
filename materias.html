@@ -1,0 +1,308 @@
+<!-- materias.html (página de matérias seguindo o mesmo estilo de index.html) -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Questões de Aviação - Matérias</title>
+
+  <!-- Fonte moderna e profissional para títulos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* mesmas cores do layout principal */
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+      --cinza-claro: #f2f2f2;
+      --cinza-fundo: #fafafa;
+      --cinza-borda: #ddd;
+      --texto-principal: #1c1c1c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      color: var(--texto-principal);
+      background: var(--cinza-claro);
+      position: relative;
+    }
+    /* fundo translúcido com a mesma imagem utilizada no index */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: 0.30;
+      z-index: -1;
+    }
+
+    /* barra de navegação no topo, translúcida como no index */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid #ccc;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    /* botões pequenos para a navegação */
+    .btn-small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background-color: var(--verde);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      height: 38px;
+    }
+    .btn-small:hover {
+      background-color: var(--verde-claro);
+      transform: scale(1.02);
+    }
+    /* estilo para botões de ícone (WhatsApp, Instagram) */
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon img {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* cabeçalho com cartão translúcido para título */
+    header {
+      text-align: center;
+      background: transparent;
+      padding: 32px 12px 8px;
+    }
+    .title-card {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.6);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      justify-content: center;
+    }
+    header h1 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: .5px;
+      color: var(--verde);
+      font-size: clamp(26px, 5vw, 48px);
+      line-height: 1.1;
+      margin: 0;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    header h2 {
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      font-weight: 400;
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: #2d3a2d;
+      opacity: .9;
+      margin-top: 6px;
+      letter-spacing: .2px;
+    }
+    .accent {
+      width: min(42ch, 80vw);
+      height: 4px;
+      margin: 8px auto 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--verde) 0%, var(--verde-claro) 100%);
+      box-shadow: 0 2px 8px rgba(47,79,47,0.25);
+    }
+
+    /* contêiner para texto introdutório */
+    .intro-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .intro-container p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    /* seção de cards para cada licença */
+    .info-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      margin: 40px auto 60px;
+      max-width: 1100px;
+      padding: 0 20px;
+    }
+    .info-box {
+      flex: 1 1 320px;
+      background: white;
+      border: 1px solid var(--cinza-borda);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease-in-out;
+    }
+    .info-box:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+      transform: translateY(-2px);
+    }
+    .info-box h3 {
+      color: var(--verde);
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .info-box ul {
+      padding-left: 20px;
+      margin-top: 6px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #444;
+    }
+    .info-box ul li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navegação superior -->
+  <div class="navbar">
+    <button class="btn-small" onclick="window.location.href='quiz.html'">Portal do Aluno</button>
+    <button class="btn-small" onclick="window.location.href='materias.html'">Matérias</button>
+    <button class="btn-small" onclick="window.location.href='vendas.html'">Planos</button>
+    
+    <button class="btn-small" onclick="window.open('faleconosco.html', '_blank')">Fale Conosco</button>
+    <!-- ícone do WhatsApp -->
+    <a href="https://wa.me/5511999999999" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
+      <img src="WhatsApp.svg" alt="WhatsApp">
+    </a>
+    <!-- ícone do Instagram -->
+    <a href="https://www.instagram.com/questoesdeaviacao" target="_blank" title="Nosso Instagram" class="btn-small btn-icon">
+      <img src="instagram.svg" alt="Instagram">
+    </a>
+  </div>
+
+  <!-- Cabeçalho da página -->
+  <header>
+    <div class="title-card">
+      <div class="title-row">
+        <!-- Ícone opcional (pode remover se não desejar) -->
+        <span class="plane" style="display:none">✈️</span>
+        <h1>Matérias</h1>
+      </div>
+      <h2>Prepare-se para as provas das licenças</h2>
+    </div>
+    <div class="accent"></div>
+  </header>
+
+  <!-- Texto introdutório -->
+  <div class="intro-container">
+    <p>No portal do aluno você encontrará questões para as provas das diferentes licenças ANAC. Abaixo listamos as licenças disponíveis e, para cada uma delas, as matérias cobradas nas provas. Escolha sua licença e comece a estudar!</p>
+  </div>
+
+  <!-- Lista de licenças e suas matérias -->
+  <div class="info-section">
+    <!-- Piloto Privado Avião -->
+    <div class="info-box">
+      <h3>🛩️ Piloto Privado Avião</h3>
+      <ul>
+        <li>Regulamentos de Tráfego Aéreo</li>
+        <li>Conhecimentos Técnicos</li>
+        <li>Meteorologia</li>
+        <li>Navegação Aérea</li>
+        <li>Teoria de Voo</li>
+      </ul>
+    </div>
+    <!-- Piloto Comercial Avião -->
+    <div class="info-box">
+      <h3>🛫 Piloto Comercial Avião</h3>
+      <ul>
+        <li>Conhecimentos Técnicos</li>
+        <li>Meteorologia</li>
+        <li>Regulamentos de Tráfego Aéreo</li>
+        <li>Teoria de Voo</li>
+      </ul>
+    </div>
+    <!-- Comissário -->
+    <div class="info-box">
+      <h3>✈️ Comissário</h3>
+      <ul>
+        <li>Bloco&nbsp;1 – Emergência, Segurança e Sobrevivência</li>
+        <li>Bloco&nbsp;2 – Regulamentação da Profissão do Aeronauta</li>
+        <li>Bloco&nbsp;3 – Aspectos Fisiológicos da Atividade de Comissário e Primeiros Socorros</li>
+        <li>Bloco&nbsp;4 – Conhecimentos Gerais de Aeronave</li>
+      </ul>
+    </div>
+    <!-- Piloto de Linha Aérea -->
+    <div class="info-box">
+      <h3>🛬 Piloto de Linha Aérea</h3>
+      <ul>
+        <li>Teoria de Voo</li>
+      </ul>
+    </div>
+    <!-- ATPL -->
+    <div class="info-box">
+      <h3>🌍 Airline Transport Pilot Licence (ATPL)</h3>
+      <ul>
+        <li>Airline Transport Pilot Licence (ATPL)</li>
+      </ul>
+    </div>
+    <!-- Piloto Privado Helicóptero -->
+    <div class="info-box">
+      <h3>🚁 Piloto Privado Helicóptero</h3>
+      <ul>
+        <li>Regulamentos de Tráfego Aéreo</li>
+        <li>Conhecimentos Técnicos</li>
+        <li>Meteorologia</li>
+        <li>Navegação Aérea</li>
+        <li>Teoria de Voo</li>
+      </ul>
+    </div>
+    <!-- Instrutor de Voo de Avião (INVA) -->
+    <div class="info-box">
+      <h3>👨‍🏫 Instrutor de Voo de Avião (INVA)</h3>
+      <ul>
+        <li>Instrutor de Voo de Avião (INVA)</li>
+      </ul>
+    </div>
+    <!-- Mecânico de Manutenção de Aeronaves -->
+    <div class="info-box">
+      <h3>🛠️ Mecânico de Manutenção de Aeronaves</h3>
+      <ul>
+        <li>Grupo Moto‑Propulsor (GMP)</li>
+        <li>Módulo Básico</li>
+        <li>Módulo Célula</li>
+        <li>Aviônicos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Scripts opcionais (por exemplo, MathJax se necessário) -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script> -->
+</body>
+</html>

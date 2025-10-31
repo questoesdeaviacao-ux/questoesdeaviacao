@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Revisão de Comentários - Questões de Aviação</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --verde-escuro: #2f4f2f;
+      --verde-claro: #3f6f3f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Poppins", system-ui, sans-serif;
+      min-height: 100vh;
+      background: url('background.jpeg') no-repeat center center / cover;
+      position: relative;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 80px;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      z-index: -1;
+    }
+    header {
+      width: 100%;
+      padding: 24px 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.4);
+      backdrop-filter: saturate(140%) blur(6px);
+      color: var(--verde-escuro);
+    }
+    header h1 {
+      font-weight: 800;
+      font-size: clamp(24px, 4vw, 40px);
+    }
+    header p {
+      font-weight: 400;
+      font-size: 0.95rem;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+    #questions-container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+    }
+    .question-card {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+    .question-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .question-card .meta {
+      font-size: 0.8rem;
+      color: #d3d3d3;
+      margin-bottom: 8px;
+    }
+    .question-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px 0;
+    }
+    .question-card li {
+      background: rgba(47, 79, 47, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .question-card li.correct {
+      background: rgba(63, 111, 63, 0.6);
+      border-left: 4px solid var(--verde-claro);
+    }
+    .correct-answer {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--verde-claro);
+    }
+    .comment-area {
+      width: 100%;
+      min-height: 40px;
+      resize: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      line-height: 1.4;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .comment-area::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .save-container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 0 20px 60px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    #save-button {
+      display: inline-block;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 25px;
+      border: none;
+      color: #fff;
+      background: var(--verde-escuro);
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+    }
+    #save-button:hover {
+      transform: scale(1.03);
+      background: var(--verde-claro);
+    }
+    #message {
+      font-size: 1.1rem;
+      text-align: center;
+      margin-top: 40px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Painel de Revisão de Comentários</h1>
+    <p>Apenas administradores podem acessar esta página</p>
+  </header>
+  <main id="questions-container"></main>
+  <div class="save-container">
+    <button id="save-button">Salvar comentários</button>
+  </div>
+  <div id="message"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { 
+      getFirestore, collection, query, where, orderBy, limit, getDocs, doc, updateDoc, getDoc, setDoc, increment 
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZcJS_AQYPWcYRsnoWljBgZRItBrCO9DE",
+      authDomain: "quiz-aviacao.firebaseapp.com",
+      projectId: "quiz-aviacao",
+      storageBucket: "quiz-aviacao.appspot.com",
+      messagingSenderId: "304277871974",
+      appId: "1:304277871974:web:98ebb69afe488439d53ca7",
+      measurementId: "G-B9NBQJD8KC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const containerEl = document.getElementById('questions-container');
+    const saveButton = document.getElementById('save-button');
+    const messageEl = document.getElementById('message');
+    let currentQuestions = [];
+
+    function autoResize(textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    }
+
+    function renderQuestions(perguntas) {
+      containerEl.innerHTML = '';
+      if (!perguntas.length) {
+        messageEl.textContent = 'Todas as questões foram revisadas.';
+        saveButton.style.display = 'none';
+        return;
+      }
+      saveButton.style.display = 'inline-block';
+      messageEl.textContent = '';
+      perguntas.forEach((q) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.dataset.id = q.id;
+
+        const title = document.createElement('h3');
+        title.textContent = q.enunciado || 'Questão sem enunciado';
+        card.appendChild(title);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const lic = q.licenca ? `Licença: ${q.licenca}` : '';
+        const mat = q.materia ? `Matéria: ${q.materia}` : '';
+        const assunto = q.assunto ? `Assunto: ${q.assunto}` : '';
+        meta.textContent = [lic, mat, assunto].filter(Boolean).join(' | ');
+        card.appendChild(meta);
+
+        const list = document.createElement('ul');
+        (q.alternativas || []).forEach((alt, idx) => {
+          const li = document.createElement('li');
+          const letra = String.fromCharCode(65 + idx);
+          li.textContent = `${letra}) ${alt}`;
+          if (Number(q.correta) === idx || q.correta === letra) {
+            li.classList.add('correct');
+          }
+          list.appendChild(li);
+        });
+        card.appendChild(list);
+
+        const correctDiv = document.createElement('div');
+        correctDiv.className = 'correct-answer';
+        let letraCorreta;
+        if (typeof q.correta === "number") {
+          letraCorreta = String.fromCharCode(65 + q.correta);
+        } else {
+          letraCorreta = q.correta;
+        }
+        correctDiv.textContent = `Alternativa correta: ${letraCorreta}`;
+        card.appendChild(correctDiv);
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'comment-area';
+        textarea.placeholder = 'Adicionar comentário do professor...';
+        textarea.value = q.comentario || '';
+        setTimeout(() => autoResize(textarea), 0);
+        textarea.addEventListener("input", () => autoResize(textarea));
+        card.appendChild(textarea);
+
+        containerEl.appendChild(card);
+      });
+    }
+
+    async function loadNextQuestions() {
+      const qRef = query(
+        collection(db, 'questoes'),
+        where('revisada', '!=', true),
+        orderBy('revisada'),
+        limit(10)
+      );
+      const snap = await getDocs(qRef);
+      currentQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderQuestions(currentQuestions);
+    }
+
+    async function saveComments() {
+      if (!currentQuestions.length) return;
+      saveButton.disabled = true;
+      saveButton.textContent = 'Salvando...';
+
+      try {
+        let totalDuplicadas = 0;
+        const cards = containerEl.querySelectorAll('.question-card');
+
+        for (const card of cards) {
+          const id = card.dataset.id;
+          const textarea = card.querySelector('textarea');
+          const comment = textarea.value.trim();
+          const ref = doc(db, 'questoes', id);
+          const original = currentQuestions.find(q => q.id === id);
+          const enunciado = original.enunciado;
+          const alternativas = original.alternativas;
+
+          await updateDoc(ref, { comentario: comment, revisada: true });
+
+          const qRef = query(collection(db, 'questoes'), where('enunciado', '==', enunciado));
+          const snap = await getDocs(qRef);
+
+          for (const d of snap.docs) {
+            if (d.id === id) continue;
+            const data = d.data();
+            if (JSON.stringify(data.alternativas) === JSON.stringify(alternativas)) {
+              const dupRef = doc(db, 'questoes', d.id);
+              await updateDoc(dupRef, { comentario: comment, revisada: true });
+              totalDuplicadas++;
+            }
+          }
+        }
+
+        // Atualizar contador no Firestore
+        const contadorRef = doc(db, 'estatisticas', 'contador');
+        await setDoc(contadorRef, { totalRevisadas: increment(10 + totalDuplicadas) }, { merge: true });
+
+        // Buscar valor atualizado
+        const contadorSnap = await getDoc(contadorRef);
+        const revisadasTotal = contadorSnap.exists() ? contadorSnap.data().totalRevisadas : 0;
+
+        messageEl.innerHTML = `
+          ✅ 10 questões revisadas com sucesso.<br>
+          🔁 ${totalDuplicadas} duplicadas também foram atualizadas e incluídas no contador.<br><br>
+          📊 Total acumulado: ${revisadasTotal}<br><br>
+          <button id="ok-button" style="padding: 10px 20px; border-radius: 10px; background: #fff; color: #2f4f2f; font-weight: 600; border: none; cursor: pointer;">OK</button>
+        `;
+
+        document.getElementById('ok-button').addEventListener('click', () => {
+          loadNextQuestions();
+          updateCounter();
+        });
+
+      } catch (err) {
+        console.error('Erro ao salvar comentários:', err);
+        alert('Erro ao salvar comentários. Verifique o console.');
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = 'Salvar comentários';
+      }
+    }
+
+    async function updateCounter() {
+      const contadorRef = doc(db, 'estatisticas', 'contador');
+      const snap = await getDoc(contadorRef);
+      let revisadasTotal = snap.exists() ? snap.data().totalRevisadas : 0;
+
+      let existing = document.getElementById('contador-revisadas');
+      if (!existing) {
+        const div = document.createElement('div');
+        div.id = 'contador-revisadas';
+        div.style.marginTop = '20px';
+        div.style.fontSize = '1.1rem';
+        div.style.fontWeight = '500';
+        div.style.color = '#fff';
+        document.body.appendChild(div);
+        existing = div;
+      }
+      existing.textContent = `✅ Total de questões revisadas: ${revisadasTotal}`;
+    }
+
+    saveButton.addEventListener('click', () => { saveComments(); });
+
+    onAuthStateChanged(auth, user => {
+      if (!user || user.email !== 'questoesdeaviacao@gmail.com') {
+        window.location.href = 'index.html';
+      } else {
+        loadNextQuestions();
+        updateCounter();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fale Conosco</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --verde: #2f4f2f;
+      --verde-claro: #3f6f3f;
+      --cinza-fundo: #f5f6f7;
+      --card-bg: #ffffff;
+      --card-borda: #e5e7eb;
+      --erro: #b00020;
+      --ok: #1e7f4f;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--cinza-fundo);
+      color: #1f2937;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity: .30;
+      z-index: -1;
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-borda);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+      padding: 28px 28px 24px;
+      backdrop-filter: saturate(140%) blur(4px);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--verde);
+      font-size: 1.35rem;
+      text-align: center;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: .95rem;
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+
+    input, textarea {
+      width: 90%;
+      margin: 0 auto;
+      display: block;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+      outline: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      width: 90%;
+      margin: 14px auto 0;
+      display: block;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: none;
+      background: var(--verde);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--verde-claro); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .mensagem {
+      width: 90%;
+      margin: 10px auto 0;
+      font-size: .95rem;
+    }
+    .mensagem.erro { color: var(--erro); }
+    .mensagem.ok { color: var(--ok); }
+
+    .voltar {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: var(--verde);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h2>Fale Conosco</h2>
+      <form id="contato-form">
+        <label for="nome">Seu Nome</label>
+        <input type="text" id="nome" required placeholder="Digite seu nome" />
+
+        <label for="email">Seu Email</label>
+        <input type="email" id="email" required placeholder="exemplo@email.com" />
+
+        <label for="mensagem">Mensagem</label>
+        <textarea id="mensagem" required placeholder="Digite sua dúvida, sugestão ou feedback..."></textarea>
+
+        <button type="submit" class="btn">Enviar</button>
+        <div id="status" class="mensagem" aria-live="polite"></div>
+      </form>
+      <a class="voltar" href="quiz.html">&larr; Voltar para o quiz</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('contato-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const mensagem = document.getElementById('mensagem').value.trim();
+      const status = document.getElementById('status');
+      status.textContent = '';
+      status.className = 'mensagem';
+
+      if (!nome || !email || !mensagem) {
+        status.textContent = 'Por favor, preencha todos os campos.';
+        status.className += ' erro';
+        return;
+      }
+
+      try {
+        const resposta = await fetch("https://us-central1-quiz-aviacao.cloudfunctions.net/enviarContato", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, email, mensagem }),
+        });
+
+        if (resposta.ok) {
+          status.textContent = '✅ Mensagem enviada com sucesso!';
+          status.className += ' ok';
+          document.getElementById("contato-form").reset();
+        } else {
+          status.textContent = 'Erro ao enviar mensagem. Tente novamente.';
+          status.className += ' erro';
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Erro ao enviar: ' + err.message;
+        status.className += ' erro';
+      }
+    });
+  </script>
+</body>
+</html>
