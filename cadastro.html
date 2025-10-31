@@ -241,7 +241,7 @@
           }
         }
 
-        await addDoc(collection(db, "usuarios"), {
+         await addDoc(collection(db, "usuarios"), {
           uid: createdUser.uid,
           nome,
           cpf,
@@ -254,10 +254,13 @@
         });
 
         setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
-        await signOut(auth);
+
+        await signOut(auth); // Desloga antes de redirecionar
+
         setTimeout(() => {
-          window.location.href = "quiz.html";
-        }, 1200);
+          window.location.href = "quiz.html"; // Redireciona com atraso maior
+        }, 2500); // ← aumentado de 1200 para 2500ms
+
 
       } catch (err) {
         console.error(err);
