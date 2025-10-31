@@ -196,11 +196,27 @@
     .price-table td { background-color: var(--cinza-fundo); }
     .highlight { font-weight: bold; color: var(--verde); background-color: #e8f5e9 !important; }
     .badge { background: var(--verde); color: white; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+
+    /* Barra de navegação superior.
+       A barra ocupa o espaço normal da página (não fixa) e pode quebrar em duas linhas em telas estreitas.
+       Os botões se alinham ao centro e há um pequeno espaçamento inferior. */
+    .nav-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid #ccc;
+      flex-wrap: wrap;
+      justify-content: center;
+      backdrop-filter: saturate(140%) blur(6px);
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
 <!-- Barra de navegação superior -->
-<div style="display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: rgba(255,255,255,0.7); border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 999;">
+<div class="nav-top">
 
   <button class="btn-small" onclick="window.location.href='quiz.html'">Portal do Aluno</button>
   <button class="btn-small" onclick="window.location.href='materias.html'">Matérias</button>
