@@ -38,17 +38,23 @@
       z-index: -1;
     }
 
-    /* barra de navegação no topo, translúcida como no index */
-    .navbar {
+    /* barra de navegação no topo, inspirada no layout do quiz e index.
+       Permite quebra de linha (flex-wrap) para acomodar mais botões em telas
+       estreitas, centraliza os itens e aplica um leve efeito de desfoque no
+       fundo translúcido. Não utilizamos position: sticky para que a barra
+       participe do fluxo normal da página e o conteúdo comece sempre após
+       ela, independentemente de ocupar uma ou duas linhas. */
+    .nav-top {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 14px 20px;
       background: rgba(255,255,255,0.7);
       border-bottom: 1px solid #ccc;
-      position: sticky;
-      top: 0;
-      z-index: 999;
+      backdrop-filter: saturate(140%) blur(6px);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 8px;
     }
     /* botões pequenos para a navegação */
     .btn-small {
@@ -190,20 +196,20 @@
   </style>
 </head>
 <body>
-  <!-- Navegação superior -->
-  <div class="navbar">
+  <!-- Navegação superior ajustada para coincidir com o layout do portal e do quiz -->
+  <div class="nav-top">
     <button class="btn-small" onclick="window.location.href='quiz.html'">Portal do Aluno</button>
     <button class="btn-small" onclick="window.location.href='materias.html'">Matérias</button>
     <button class="btn-small" onclick="window.location.href='vendas.html'">Planos</button>
-    
+    <button class="btn-small" onclick="window.location.href='tutoriais.html'">Tutoriais</button>
     <button class="btn-small" onclick="window.open('faleconosco.html', '_blank')">Fale Conosco</button>
-    <!-- ícone do WhatsApp -->
-    <a href="https://wa.me/5511999999999" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
-      <img src="WhatsApp.svg" alt="WhatsApp">
+    <!-- Ícone do WhatsApp -->
+    <a href="https://wa.me/5561920052273" target="_blank" title="Fale via WhatsApp" class="btn-small btn-icon">
+      <img src="WhatsApp.svg" alt="WhatsApp" />
     </a>
-    <!-- ícone do Instagram -->
+    <!-- Ícone do Instagram -->
     <a href="https://www.instagram.com/questoesdeaviacao" target="_blank" title="Nosso Instagram" class="btn-small btn-icon">
-      <img src="instagram.svg" alt="Instagram">
+      <img src="instagram.svg" alt="Instagram" />
     </a>
   </div>
 
