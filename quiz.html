@@ -11,6 +11,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* Estilos da barra de navegação no topo. Inspirado no index.html para
+       oferecer responsividade: permite quebra de linha quando necessário,
+       centraliza os botões e mantém um fundo translúcido com borda inferior.
+       Usamos position: sticky para a barra permanecer visível ao rolar,
+       sem precisar de preenchimento extra no topo do body. */
+    .nav-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid #ccc;
+      /* A barra de navegação participa do fluxo normal da página (não é sticky ou fixa). */
+      backdrop-filter: saturate(140%) blur(6px);
+      flex-wrap: wrap;
+      justify-content: center;
+      /* espaço extra abaixo para não colar no título */
+      margin-bottom: 8px;
+    }
+    /* Garante que padding e bordas sejam incluídos no cálculo da largura e altura de todos os elementos.
+       Isso evita que a caixa de login ultrapasse a largura da tela em dispositivos pequenos. */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
     :root {
       --fundo-claro: #f0f0f0;
       --texto-claro: #004400;
@@ -29,8 +53,6 @@
       color: var(--texto-claro);
       margin: 0;
       padding: 0;
-      /* adiciona espaço no topo para a barra fixa */
-      padding-top: var(--topbar-h);
       position: relative;
     }
     body::before {
@@ -75,11 +97,9 @@
     }
 
     #logout {
-      position: fixed;
-      /* reposiciona abaixo da barra fixa */
-      top: calc(var(--topbar-h) + 10px);
-      left: 12px;
-      z-index: 10;
+      /* Botão de saída: inicialmente escondido; quando exibido, participa do
+         fluxo normal da página. Não utilizamos posição fixa para evitar
+         dependência da altura da barra de navegação. */
       display: none;
       width: auto;
       padding: 8px 14px;
@@ -92,6 +112,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       cursor: pointer;
       transition: transform .2s ease-in-out, background .2s ease-in-out;
+      margin: 10px 12px 0;
     }
     #logout:hover { transform: scale(1.02); background: var(--verde-claro); }
 
@@ -156,21 +177,9 @@
       height: 20px;
     }
 
-    /* contêiner da barra de navegação fixa */
-    .nav-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      background: rgba(255,255,255,0.7);
-      border-bottom: 1px solid #ccc;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 999;
-      backdrop-filter: saturate(140%) blur(6px);
-    }
+    /* removido bloco duplicado da barra de navegação fixa. O estilo da barra
+       de navegação é definido anteriormente para seguir o modelo do index.html,
+       sem posicionamento fixo. */
 
     #login-form {
       background: white;
