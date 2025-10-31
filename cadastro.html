@@ -253,8 +253,12 @@
           timestamp: serverTimestamp()
         });
 
-        setMensagem("Usuário cadastrado com sucesso! Redirecionando…", "ok");
-        setTimeout(() => { window.location.href = "quiz.html"; }, 800);
+        setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
+        await signOut(auth);
+        setTimeout(() => {
+          window.location.href = "quiz.html";
+        }, 1200);
+
       } catch (err) {
         console.error(err);
         if (createdUser) await deleteUser(createdUser);
