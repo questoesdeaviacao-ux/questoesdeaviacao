@@ -5,7 +5,244 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Página de Vendas — Questões de Aviação</title>
 
-  <!-- Meta Pixel Code -->
+  <!-- Fonte (igual à index) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --verde: #2f4f2f;
+      --verde-600: #2f4f2f;
+      --verde-500: #3f6f3f;
+      --verde-700: #224022;
+      --vidro: rgba(255,255,255,0.75);
+      --vidro-sutil: rgba(255,255,255,0.58);
+      --borda-vidro: rgba(255,255,255,0.65);
+      --texto: #1d2a1d;
+      --shadow: 0 10px 30px rgba(16,24,16,0.12);
+      --shadow-soft: 0 6px 18px rgba(16,24,16,0.10);
+      --radius: 18px;
+      --gap: 26px;           /* espaço vertical consistente entre as caixas */
+      --gap-sm: 14px;        /* meio espaço para títulos/legendinhas */
+      --container: 1120px;
+    }
+    *{ box-sizing: border-box; margin:0; padding:0; }
+
+    body{
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      color: var(--texto);
+      background: #f3f5f3;
+      position: relative;
+      min-height: 100vh;
+    }
+    /* Fundo com imagem (igual à index) */
+    body::before{
+      content:"";
+      position: fixed; inset:0;
+      background: url('background.jpeg') no-repeat center center / cover;
+      opacity:0.5;
+      z-index:-1;
+    }
+
+    /* ====== Título translúcido ====== */
+    header{
+      text-align:center;
+      background: transparent;
+      padding: 32px 12px 10px;
+    }
+    .title-card{
+      display:inline-block;
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      background: var(--vidro);
+      border:1px solid var(--borda-vidro);
+      box-shadow: var(--shadow-soft);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .title-row{
+      display:flex; align-items:baseline; justify-content:center; gap:10px;
+    }
+    h1{
+      font-family:"Poppins","Segoe UI",system-ui,sans-serif;
+      font-weight:800; letter-spacing:.3px; color: var(--verde-600);
+      font-size: clamp(28px,5vw,52px); line-height:1.1; margin:0;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+    }
+    h2{
+      font-family:"Poppins","Segoe UI",system-ui,sans-serif;
+      font-weight:400; font-size:clamp(14px,1.6vw,18px);
+      color:#2d3a2d; opacity:.9; margin-top:6px; letter-spacing:.2px;
+    }
+    .accent{
+      width:min(46ch, 86vw); height:4px; margin:10px auto 0; border-radius:999px;
+      background: linear-gradient(90deg, var(--verde-600) 0%, var(--verde-500) 100%);
+      box-shadow: 0 2px 10px rgba(47,79,47,0.25);
+    }
+
+    /* ====== Utilitários ====== */
+    .container{
+      max-width: var(--container);
+      margin: 28px auto 86px;
+      padding: 0 20px;
+    }
+    .stack{ display:flex; flex-direction:column; gap: var(--gap); }
+    .muted{ color:#2b3b2b; opacity:.9; }
+    .center{ text-align:center; }
+    .small{ font-size:.95rem; }
+    .spacer{ height: var(--gap-sm); }
+
+    /* ====== Botões ====== */
+    .btn{
+      display:inline-block; border:none; cursor:pointer;
+      font-weight:800; font-size:1rem; letter-spacing:.2px;
+      color:#fff; padding:12px 20px; border-radius:999px;
+      background: linear-gradient(180deg, var(--verde-500), var(--verde-700));
+      box-shadow: 0 6px 14px rgba(34,64,34,0.22);
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+      text-align:center; text-decoration:none;
+    }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); box-shadow: 0 10px 24px rgba(34,64,34,0.28); }
+    .btn.alt{ background: linear-gradient(180deg, #254a25, #1a341a); }
+    .link-sec{ color: var(--verde-600); text-decoration: underline; font-weight:700; }
+
+    /* ====== Cards (Glass) ====== */
+    .card{
+      border-radius: var(--radius);
+      background: var(--vidro-sutil);
+      border:1px solid var(--borda-vidro);
+      -webkit-backdrop-filter: blur(8px) saturate(140%);
+      backdrop-filter: blur(8px) saturate(140%);
+      padding: 22px 22px;
+      box-shadow: var(--shadow);
+    }
+    .card h3{
+      color: var(--verde-600);
+      font: 800 1.55rem "Poppins","Segoe UI",system-ui,sans-serif;
+      margin-bottom: var(--gap-sm);
+    }
+    .list{ margin-top: 4px; }
+    .list li{ margin: 8px 0; line-height: 1.65; }
+
+    /* ====== Hero ====== */
+    .hero{
+      text-align:center; padding: 10px 8px 4px;
+    }
+    .kicker{
+      display:inline-block; margin-bottom:10px; font-weight:800;
+      color:#0d3310; background:#e8f5e9; border:1px solid #cfe8d2;
+      padding:6px 12px; border-radius:999px; letter-spacing:.3px;
+    }
+    .big{
+      font-weight:800; font-size: clamp(24px, 3.8vw, 40px);
+      line-height:1.22; color:#163416; margin:8px auto 10px; max-width: 28ch;
+      font-family:"Poppins","Segoe UI",system-ui,sans-serif;
+    }
+    .sub{
+      color:#2a3a2a; opacity:.95; max-width: 62ch; margin:0 auto 12px; font-size:1.05rem;
+    }
+    .top-links{
+      display:flex; gap:12px; justify-content:center; margin: 12px auto 0;
+      flex-wrap: wrap;
+    }
+
+    /* ====== Faixa Ilimitados (Glass destaque) ====== */
+    .glass-highlight{
+      display:grid; gap: 14px;
+      grid-template-columns: 1fr;
+      align-items:center;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.42);
+      border:1px solid rgba(255,255,255,0.7);
+      -webkit-backdrop-filter: blur(12px) saturate(160%);
+      backdrop-filter: blur(12px) saturate(160%);
+      box-shadow: var(--shadow);
+      text-align:center;
+    }
+    .glass-highlight .title{
+      font: 800 1.35rem "Poppins","Segoe UI",system-ui,sans-serif;
+      color:#0f2f10;
+    }
+    .glass-highlight .grid{
+      display:grid; gap:10px; grid-template-columns: 1fr; margin-top: 4px;
+    }
+    .tag{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      padding:10px 12px; border-radius:12px;
+      background: rgba(255,255,255,0.75);
+      border:1px solid rgba(255,255,255,0.8);
+      -webkit-backdrop-filter: blur(8px) saturate(140%);
+      backdrop-filter: blur(8px) saturate(140%);
+      font-weight:800; color:#143214;
+    }
+    @media (min-width: 720px){
+      .glass-highlight .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ====== Plans ====== */
+    .plans{
+      display:grid; gap: var(--gap);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 860px){
+      .plans{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    }
+    .plan{
+      background: rgba(255,255,255,0.80);
+      border:1px solid var(--borda-vidro);
+      border-radius: var(--radius);
+      padding: 18px 18px 20px;
+      box-shadow: var(--shadow);
+      display:flex; flex-direction:column; gap:12px; align-items:stretch;
+      position:relative; overflow:hidden;
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    .plan.popular{ outline: 3px solid #e8f5e9; }
+    .plan .label{
+      position:absolute; right:12px; top:12px; background: var(--verde-600);
+      color:#fff; font-size:.78rem; padding:4px 8px; border-radius:6px; font-weight:800;
+      box-shadow: 0 4px 10px rgba(34,64,34,0.25);
+    }
+    .plan h4{
+      margin:0; color:#194419; font-weight:800; font-size:1.28rem;
+      font-family:"Poppins","Segoe UI",system-ui,sans-serif;
+    }
+    .price s{ color:#6e7c6e; font-size:.95rem; }
+    .price strong{
+      display:block; font-size:1.78rem; color:#0d3310; margin-top:4px;
+    }
+    .meta{ color:#2f4a2f; font-size:.97rem; }
+    .plan ul{ margin: 0 0 6px 18px; }
+    .plan li{ margin:6px 0; line-height:1.6; }
+
+    /* ====== FAQ & CTA ====== */
+    details{
+      background: rgba(255,255,255,0.78);
+      border:1px solid var(--borda-vidro);
+      border-radius:12px;
+      padding:14px 16px; box-shadow: var(--shadow-soft);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+    }
+    summary{ cursor:pointer; font-weight:800; color:#103410; }
+    details p{ margin-top:10px; color:#2c3a2c; }
+
+    .cta{
+      text-align:center;
+      background: var(--vidro);
+      border:1px solid var(--borda-vidro);
+      box-shadow: var(--shadow);
+      -webkit-backdrop-filter: blur(6px) saturate(140%);
+      backdrop-filter: blur(6px) saturate(140%);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+  
+  </style>
+  <!-- Facebook Pixel Code -->
   <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -20,20 +257,9 @@
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=25174995972131229&ev=PageView&noscript=1"/>
+         src="https://www.facebook.com/tr?id=25174995972131229&ev=PageView&noscript=1"/>
   </noscript>
-  <!-- End Meta Pixel Code -->
-
-  <!-- Fonte (igual à index) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet"/>
-
-  <!-- Estilos (sem alteração) -->
-  <style>
-    /* Aqui vão todos os estilos CSS exatamente como você me enviou... */
-    /* [Se desejar, posso colar também a folha de estilo inteira aqui.] */
-  </style>
+  <!-- End Facebook Pixel Code -->
 </head>
 <body>
 
@@ -50,19 +276,21 @@
 
   <main class="container">
     <div class="stack">
+
       <!-- HERO -->
       <section class="card hero">
         <span class="kicker">ANAC, eu vou passar</span>
         <p class="big">Domine sua prova com QUESTÕES e SIMULADOS ILIMITADOS.</p>
         <p class="sub">Estudo claro e eficiente: banco de questões atualizado, estatísticas inteligentes e explicações objetivas (em breve). Você escolhe a licença — nós aceleramos sua aprovação.</p>
         <div class="top-links">
-          <a class="btn" href="#planos">Ver planos</a>
-          <a class="link-sec" href="quiz.html"
-            style="flex-basis:100%; text-align:center; margin-top:8px;">Já sou aluno</a><br>
-        </div>
+  <a class="btn" href="#planos">Ver planos</a>
+  <a class="link-sec" href="quiz.html"
+     style="flex-basis:100%; text-align:center; margin-top:8px;">Já sou aluno</a><br>
+</div>
+
       </section>
 
-      <!-- HIGHLIGHT ILIMITADOS -->
+      <!-- HIGHLIGHT ILIMITADOS (glass) -->
       <section class="glass-highlight" aria-label="Destaque ilimitados">
         <div class="title">Tudo incluso na sua assinatura — sem limites.</div>
         <div class="grid">
@@ -83,10 +311,11 @@
         </ul>
       </section>
 
-      <!-- CONFIANÇA -->
+      <!-- FAIXA DE CONFIANÇA -->
       <section class="card center small" aria-label="Confiança">
         Acesso imediato após a compra • Cancelamento simples • Estudo no seu ritmo • Atualizado constantemente
       </section>
+
       <!-- PLANOS -->
       <section class="card" id="planos" aria-label="Planos e preços">
         <h3>Escolha seu plano</h3>
@@ -108,7 +337,7 @@
               <li>Estatísticas completas</li>
               <li>Comentários explicativos</li>
             </ul>
-            <a class="btn" onclick="fbq('track', 'InitiateCheckout');" href="https://pay.hotmart.com/I101337939X?off=7kfi8udg">Assine agora</a>
+            <a class="btn" href="https://pay.hotmart.com/I101337939X?off=7kfi8udg" onclick="fbq('track', 'InitiateCheckout');">Assine agora</a>
           </div>
 
           <!-- 90 dias -->
@@ -124,10 +353,10 @@
               <li>Estatísticas avançadas</li>
               <li>Comentários explicativos</li>
             </ul>
-            <a class="btn alt" onclick="fbq('track', 'InitiateCheckout');" href="https://pay.hotmart.com/I101337939X?off=u6l48anm">Assine agora</a>
+            <a class="btn alt" href="https://pay.hotmart.com/I101337939X?off=u6l48anm" onclick="fbq('track', 'InitiateCheckout');">Assine agora</a>
           </div>
 
-          <!-- 180 dias -->
+          <!-- 180 dias (popular) -->
           <div class="plan popular">
             <span class="label">MAIS POPULAR</span>
             <h4>Profissional</h4>
@@ -142,13 +371,14 @@
               <li>Comentários explicativos</li>
               <li>Melhor custo-benefício</li>
             </ul>
-            <a class="btn" onclick="fbq('track', 'InitiateCheckout');" href="https://pay.hotmart.com/I101337939X?off=vuqtlmcp">Assine agora</a>
+            <a class="btn" href="https://pay.hotmart.com/I101337939X?off=vuqtlmcp" onclick="fbq('track', 'InitiateCheckout');">Assine agora</a>
           </div>
         </div>
 
         <div class="spacer"></div>
         <p class="small muted">*Desconto válido apenas para a primeira compra. Renovações seguem o preço original.</p>
       </section>
+
       <!-- CONTEÚDOS -->
       <section class="card">
         <h3>Estude para as provas teóricas de:</h3>
@@ -191,12 +421,13 @@
           <p>Logo após a confirmação do pagamento, o acesso é liberado automaticamente.</p>
         </details>
       </section>
+
       <!-- CTA FINAL -->
       <section class="card cta" aria-label="Chamada final">
         <h3 style="margin-bottom:8px;">Pronto para acelerar sua aprovação?</h3>
         <p class="muted" style="margin-bottom:14px;">Comece agora com <strong>Questões</strong> e <strong>Simulados ILIMITADOS</strong>. Estude com clareza e foco — chegue seguro no dia da prova.</p>
         <div class="top-links" style="margin-bottom:6px;">
-          <a class="btn" onclick="fbq('track', 'InitiateCheckout');" href="https://pay.hotmart.com/I101337939X?off=vuqtlmcp">Começar pelo Semestral</a>
+          <a class="btn" href="https://pay.hotmart.com/I101337939X?off=vuqtlmcp" onclick="fbq('track', 'InitiateCheckout');">Começar pelo Semestral</a>
           <a class="btn alt" href="#planos">Ver todos os planos</a>
         </div>
         <a class="link-sec" href="quiz.html">Já sou aluno</a>
@@ -204,22 +435,66 @@
 
     </div>
   </main>
-
-<!-- Botões fixos (inalterados) -->
+<!-- Botões Fale Conosco + WhatsApp + Instagram no canto superior direito -->
 <div style="position: fixed; top: 12px; right: 14px; display: flex; gap: 10px; align-items: center; z-index: 999;">
+  
+  <!-- Botão Fale Conosco -->
   <button id="btn-faleconosco" title="Fale com a gente"
     onclick="window.open('faleconosco.html', '_blank')"
-    style="background: var(--verde); color: #fff; border: none; border-radius: 20px; padding: 8px 12px; font-size: 0.80rem; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; opacity: 0.85; height: 38px;">
+    style="
+      background: var(--verde);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-size: 0.80rem;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      opacity: 0.85;
+      height: 38px;
+    ">
     Fale conosco
   </button>
-  <a id="btn-whatsapp" title="Fale via WhatsApp" href="https://wa.me/5561920052273" target="_blank"
-    style="width: 38px; height: 38px; background: var(--verde); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; text-decoration: none; overflow: hidden;">
+
+  <!-- Botão WhatsApp com ícone SVG -->
+  <a id="btn-whatsapp" title="Fale via WhatsApp"
+    href="https://wa.me/5561920052273" target="_blank"
+    style="
+      width: 38px;
+      height: 38px;
+      background: var(--verde);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      text-decoration: none;
+      overflow: hidden;
+    ">
     <img src="WhatsApp.svg" alt="WhatsApp" style="height: 60%; width: auto;" />
   </a>
-  <a id="btn-instagram" title="Visite nosso Instagram" href="https://www.instagram.com/questoesdeaviacao" target="_blank"
-    style="width: 38px; height: 38px; background: var(--verde); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; text-decoration: none; overflow: hidden;">
+
+  <!-- Botão Instagram com ícone SVG -->
+  <a id="btn-instagram" title="Visite nosso Instagram"
+    href="https://www.instagram.com/questoesdeaviacao" target="_blank"
+    style="
+      width: 38px;
+      height: 38px;
+      background: var(--verde);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      text-decoration: none;
+      overflow: hidden;
+    ">
     <img src="instagram.svg" alt="Instagram" style="height: 60%; width: auto;" />
   </a>
+
 </div>
 
 </body>
