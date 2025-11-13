@@ -170,12 +170,10 @@
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import {
       getFirestore,
-      collection,
-      addDoc,
+      doc,
+      setDoc,
       serverTimestamp,
-      getDocs,
-      query,
-      where
+      getDoc
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -212,7 +210,7 @@
 
       const nome = document.getElementById('nome').value.trim();
       const cpf = document.getElementById('cpf').value.trim();
-      const email = document.getElementById('email').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
       const telefone = document.getElementById('telefone').value.trim();
       const senha = document.getElementById('senha').value;
       const confirmarSenha = document.getElementById('confirmarSenha').value;
@@ -230,18 +228,19 @@
         const cred = await createUserWithEmailAndPassword(auth, email, senha);
         createdUser = cred.user;
 
-        // Verifica se o usuário já tem assinatura ativa e válida
+        const userDocRef = doc(db, "usuarios", email);
         let ativoInicial = false;
-        const snap = await getDocs(query(collection(db, "usuarios"), where("email", "==", email)));
-        if (!snap.empty) {
-          const dados = snap.docs[0].data();
+
+        const snap = await getDoc(userDocRef);
+        if (snap.exists()) {
+          const dados = snap.data();
           const expira = dados.expiraEm || dados.expira;
           if (dados.ativo === true && expira && new Date(expira.toDate ? expira.toDate() : expira) > new Date()) {
             ativoInicial = true;
           }
         }
 
-         await addDoc(collection(db, "usuarios"), {
+        await setDoc(userDocRef, {
           uid: createdUser.uid,
           nome,
           cpf,
@@ -251,16 +250,14 @@
           fase,
           ativo: ativoInicial,
           timestamp: serverTimestamp()
-        });
+        }, { merge: true });
 
         setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
-
-        await signOut(auth); // Desloga antes de redirecionar
+        await signOut(auth);
 
         setTimeout(() => {
-          window.location.href = "quiz.html"; // Redireciona com atraso maior
-        }, 2500); // ← aumentado de 1200 para 2500ms
-
+          window.location.href = "quiz.html";
+        }, 2500);
 
       } catch (err) {
         console.error(err);
