@@ -203,6 +203,11 @@
     const validarTelefone = tel => /^\d{10,11}$/.test(tel);
     const validarEmail = em => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
 
+    // 🔧 Converte email para um ID seguro no Firestore
+    function sanitizeEmail(email) {
+      return email.replace(/\./g, '_').replace(/@/g, '_');
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       setMensagem("");
@@ -211,6 +216,7 @@
       const nome = document.getElementById('nome').value.trim();
       const cpf = document.getElementById('cpf').value.trim();
       const email = document.getElementById('email').value.trim().toLowerCase();
+      const emailId = sanitizeEmail(email);
       const telefone = document.getElementById('telefone').value.trim();
       const senha = document.getElementById('senha').value;
       const confirmarSenha = document.getElementById('confirmarSenha').value;
@@ -228,7 +234,7 @@
         const cred = await createUserWithEmailAndPassword(auth, email, senha);
         createdUser = cred.user;
 
-        const userDocRef = doc(db, "usuarios", email);
+        const userDocRef = doc(db, "usuarios", emailId);
         let ativoInicial = false;
 
         const snap = await getDoc(userDocRef);
