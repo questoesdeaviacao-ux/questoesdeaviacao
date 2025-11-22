@@ -173,7 +173,8 @@
       doc,
       setDoc,
       serverTimestamp,
-      getDoc
+      getDoc,
+      Timestamp
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -235,16 +236,10 @@
         createdUser = cred.user;
 
         const userDocRef = doc(db, "usuarios", emailId);
-        let ativoInicial = false;
 
-        const snap = await getDoc(userDocRef);
-        if (snap.exists()) {
-          const dados = snap.data();
-          const expira = dados.expiraEm || dados.expira;
-          if (dados.ativo === true && expira && new Date(expira.toDate ? expira.toDate() : expira) > new Date()) {
-            ativoInicial = true;
-          }
-        }
+        // Calcular a data de expiração: 3 dias após a data atual
+        const expiraEmDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+        const expiraEmTimestamp = Timestamp.fromDate(expiraEmDate);
 
         await setDoc(userDocRef, {
           uid: createdUser.uid,
@@ -254,7 +249,8 @@
           email,
           objetivo,
           fase,
-          ativo: ativoInicial,
+          ativo: true,
+          expiraEm: expiraEmTimestamp,
           timestamp: serverTimestamp()
         }, { merge: true });
 
