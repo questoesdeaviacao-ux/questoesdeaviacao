@@ -173,8 +173,7 @@
       doc,
       setDoc,
       serverTimestamp,
-      getDoc,
-      Timestamp
+      getDoc
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -190,6 +189,18 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // 🔍 UTM Parameter Capture
+    // These helper functions extract UTM parameters from the query string.
+    // If the parameter is not present, they return null.
+    function getUTM(key) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(key) || null;
+    }
+    // Capture source (google, meta), campaign and keyword (for Google ads)
+    const utm_source = getUTM('utm_source');
+    const utm_campaign = getUTM('utm_campaign');
+    const utm_term = getUTM('utm_term');
 
     const form = document.getElementById('cadastro-form');
     const btn = document.getElementById('btnCadastrar');
@@ -236,12 +247,19 @@
         createdUser = cred.user;
 
         const userDocRef = doc(db, "usuarios", emailId);
+        let ativoInicial = false;
 
-        // Calcular a data de expiração: 3 dias após a data atual
-        const expiraEmDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-        const expiraEmTimestamp = Timestamp.fromDate(expiraEmDate);
+        const snap = await getDoc(userDocRef);
+        if (snap.exists()) {
+          const dados = snap.data();
+          const expira = dados.expiraEm || dados.expira;
+          if (dados.ativo === true && expira && new Date(expira.toDate ? expira.toDate() : expira) > new Date()) {
+            ativoInicial = true;
+          }
+        }
 
-        await setDoc(userDocRef, {
+        // 📝 Assemble data for Firestore. Only add UTM fields if they exist.
+        const docData = {
           uid: createdUser.uid,
           nome,
           cpf,
@@ -249,10 +267,20 @@
           email,
           objetivo,
           fase,
-          ativo: true,
-          expiraEm: expiraEmTimestamp,
+          ativo: ativoInicial,
           timestamp: serverTimestamp()
-        }, { merge: true });
+        };
+        // Conditionally attach UTM information to the document
+        if (utm_source) {
+          docData.utm_source = utm_source;
+        }
+        if (utm_campaign) {
+          docData.utm_campaign = utm_campaign;
+        }
+        if (utm_term) {
+          docData.utm_term = utm_term;
+        }
+        await setDoc(userDocRef, docData, { merge: true });
 
         setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
         await signOut(auth);
