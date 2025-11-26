@@ -194,7 +194,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 🔍 Captura UTM
+    // --- Captura UTM ---
     function getUTM(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key) || null;
@@ -207,8 +207,8 @@
     const btn = document.getElementById('btnCadastrar');
     const msg = document.getElementById('mensagem');
 
-    function setMensagem(texto, tipo="erro") {
-      msg.textContent = texto;
+    function setMensagem(text, tipo="erro") {
+      msg.textContent = text;
       msg.className = `mensagem ${tipo}`;
     }
 
@@ -249,16 +249,17 @@
 
         const userDocRef = doc(db, "usuarios", emailId);
 
-        // 🔥 3 DIAS GRÁTIS
+        // --- CALCULA 3 DIAS GRÁTIS ---
         let ativoInicial = true;
         let expiraEmDate = new Date();
         expiraEmDate.setDate(expiraEmDate.getDate() + 3);
 
-        // Se já existir e estiver ativo, conserva
+        // se já existia doc e era ativo → mantém expira
         const snap = await getDoc(userDocRef);
         if (snap.exists()) {
           const dados = snap.data();
           const expira = dados.expiraEm;
+
           if (dados.ativo && expira) {
             const exp = expira.toDate ? expira.toDate() : new Date(expira);
             if (exp > new Date()) {
@@ -268,7 +269,7 @@
           }
         }
 
-        // 🔥 SALVANDO COM Timestamp.fromDate()
+        // --- DADOS PARA SALVAR ---
         const docData = {
           uid: createdUser.uid,
           nome,
