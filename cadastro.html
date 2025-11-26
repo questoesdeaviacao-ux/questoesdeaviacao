@@ -191,13 +191,10 @@
     const db = getFirestore(app);
 
     // 🔍 UTM Parameter Capture
-    // These helper functions extract UTM parameters from the query string.
-    // If the parameter is not present, they return null.
     function getUTM(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key) || null;
     }
-    // Capture source (google, meta), campaign and keyword (for Google ads)
     const utm_source = getUTM('utm_source');
     const utm_campaign = getUTM('utm_campaign');
     const utm_term = getUTM('utm_term');
@@ -247,18 +244,29 @@
         createdUser = cred.user;
 
         const userDocRef = doc(db, "usuarios", emailId);
-        let ativoInicial = false;
 
+        // 🔥 LÓGICA DE ATIVAÇÃO: 3 dias grátis por padrão
+        let ativoInicial = true;
+        let expiraEmDate = new Date();
+        expiraEmDate.setDate(expiraEmDate.getDate() + 3);
+
+        // Se já existir um usuário com assinatura ativa e não expirada,
+        // preserva expiraEm e ativo (não derruba quem já tem algo maior)
         const snap = await getDoc(userDocRef);
         if (snap.exists()) {
           const dados = snap.data();
           const expira = dados.expiraEm || dados.expira;
-          if (dados.ativo === true && expira && new Date(expira.toDate ? expira.toDate() : expira) > new Date()) {
-            ativoInicial = true;
+          if (dados.ativo === true && expira) {
+            const expiraDate = expira.toDate ? expira.toDate() : new Date(expira);
+            const agora = new Date();
+            if (expiraDate > agora) {
+              ativoInicial = true;
+              expiraEmDate = expiraDate;
+            }
           }
         }
 
-        // 📝 Assemble data for Firestore. Only add UTM fields if they exist.
+        // 📝 Monta os dados a serem gravados
         const docData = {
           uid: createdUser.uid,
           nome,
@@ -268,9 +276,10 @@
           objetivo,
           fase,
           ativo: ativoInicial,
+          expiraEm: expiraEmDate,
           timestamp: serverTimestamp()
         };
-        // Conditionally attach UTM information to the document
+
         if (utm_source) {
           docData.utm_source = utm_source;
         }
@@ -280,6 +289,7 @@
         if (utm_term) {
           docData.utm_term = utm_term;
         }
+
         await setDoc(userDocRef, docData, { merge: true });
 
         setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
@@ -291,7 +301,6 @@
 
       } catch (err) {
         console.error(err);
-        // tenta apagar o usuário criado, se chegou a criar
         try {
           if (createdUser) {
             await deleteUser(createdUser);
@@ -306,7 +315,6 @@
           console.error("Erro ao fazer signOut:", e);
         }
 
-        // mostra o código do erro na tela para a gente diagnosticar
         const codigo = err && err.code ? err.code : "";
         const mensagemDetalhe = err && err.message ? err.message : "";
         setMensagem(
