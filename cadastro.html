@@ -116,6 +116,7 @@
   <div class="page">
     <div class="card">
       <h2>Cadastro de Novo Usuário</h2>
+
       <form id="cadastro-form" novalidate>
         <label for="nome">Nome completo</label>
         <input type="text" id="nome" required>
@@ -153,6 +154,7 @@
         </select>
 
         <button id="btnCadastrar" type="submit" class="btn">Cadastrar</button>
+
         <div id="mensagem" class="mensagem" aria-live="polite"></div>
       </form>
 
@@ -168,12 +170,14 @@
       deleteUser,
       signOut
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
     import {
       getFirestore,
       doc,
       setDoc,
       serverTimestamp,
-      getDoc
+      getDoc,
+      Timestamp
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -190,7 +194,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 🔍 UTM Parameter Capture
+    // 🔍 Captura UTM
     function getUTM(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key) || null;
@@ -203,7 +207,7 @@
     const btn = document.getElementById('btnCadastrar');
     const msg = document.getElementById('mensagem');
 
-    function setMensagem(texto, tipo = "erro") {
+    function setMensagem(texto, tipo="erro") {
       msg.textContent = texto;
       msg.className = `mensagem ${tipo}`;
     }
@@ -212,12 +216,11 @@
     const validarTelefone = tel => /^\d{10,11}$/.test(tel);
     const validarEmail = em => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
 
-    // 🔧 Converte email para um ID seguro no Firestore
     function sanitizeEmail(email) {
       return email.replace(/\./g, '_').replace(/@/g, '_');
     }
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async e => {
       e.preventDefault();
       setMensagem("");
       btn.disabled = true;
@@ -239,34 +242,33 @@
       }
 
       let createdUser = null;
+
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, senha);
         createdUser = cred.user;
 
         const userDocRef = doc(db, "usuarios", emailId);
 
-        // 🔥 LÓGICA DE ATIVAÇÃO: 3 dias grátis por padrão
+        // 🔥 3 DIAS GRÁTIS
         let ativoInicial = true;
         let expiraEmDate = new Date();
         expiraEmDate.setDate(expiraEmDate.getDate() + 3);
 
-        // Se já existir um usuário com assinatura ativa e não expirada,
-        // preserva expiraEm e ativo (não derruba quem já tem algo maior)
+        // Se já existir e estiver ativo, conserva
         const snap = await getDoc(userDocRef);
         if (snap.exists()) {
           const dados = snap.data();
-          const expira = dados.expiraEm || dados.expira;
-          if (dados.ativo === true && expira) {
-            const expiraDate = expira.toDate ? expira.toDate() : new Date(expira);
-            const agora = new Date();
-            if (expiraDate > agora) {
+          const expira = dados.expiraEm;
+          if (dados.ativo && expira) {
+            const exp = expira.toDate ? expira.toDate() : new Date(expira);
+            if (exp > new Date()) {
               ativoInicial = true;
-              expiraEmDate = expiraDate;
+              expiraEmDate = exp;
             }
           }
         }
 
-        // 📝 Monta os dados a serem gravados
+        // 🔥 SALVANDO COM Timestamp.fromDate()
         const docData = {
           uid: createdUser.uid,
           nome,
@@ -276,19 +278,13 @@
           objetivo,
           fase,
           ativo: ativoInicial,
-          expiraEm: expiraEmDate,
+          expiraEm: Timestamp.fromDate(expiraEmDate),
           timestamp: serverTimestamp()
         };
 
-        if (utm_source) {
-          docData.utm_source = utm_source;
-        }
-        if (utm_campaign) {
-          docData.utm_campaign = utm_campaign;
-        }
-        if (utm_term) {
-          docData.utm_term = utm_term;
-        }
+        if (utm_source) docData.utm_source = utm_source;
+        if (utm_campaign) docData.utm_campaign = utm_campaign;
+        if (utm_term) docData.utm_term = utm_term;
 
         await setDoc(userDocRef, docData, { merge: true });
 
@@ -301,24 +297,13 @@
 
       } catch (err) {
         console.error(err);
-        try {
-          if (createdUser) {
-            await deleteUser(createdUser);
-          }
-        } catch (e) {
-          console.error("Erro ao deletar usuário criado:", e);
-        }
 
-        try {
-          await signOut(auth);
-        } catch (e) {
-          console.error("Erro ao fazer signOut:", e);
-        }
+        try { if (createdUser) await deleteUser(createdUser); } catch (e) {}
+        try { await signOut(auth); } catch (e) {}
 
-        const codigo = err && err.code ? err.code : "";
-        const mensagemDetalhe = err && err.message ? err.message : "";
         setMensagem(
-          "Erro ao cadastrar. Código: " + codigo + (mensagemDetalhe ? " - " + mensagemDetalhe : ""),
+          "Erro ao cadastrar. Código: " + (err.code || "") +
+          (err.message ? " - " + err.message : ""),
           "erro"
         );
       }
