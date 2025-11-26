@@ -190,6 +190,18 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // 🔍 UTM Parameter Capture
+    // These helper functions extract UTM parameters from the query string.
+    // If the parameter is not present, they return null.
+    function getUTM(key) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(key) || null;
+    }
+    // Capture source (google, meta), campaign and keyword (for Google ads)
+    const utm_source = getUTM('utm_source');
+    const utm_campaign = getUTM('utm_campaign');
+    const utm_term = getUTM('utm_term');
+
     const form = document.getElementById('cadastro-form');
     const btn = document.getElementById('btnCadastrar');
     const msg = document.getElementById('mensagem');
@@ -246,7 +258,8 @@
           }
         }
 
-        await setDoc(userDocRef, {
+        // 📝 Assemble data for Firestore. Only add UTM fields if they exist.
+        const docData = {
           uid: createdUser.uid,
           nome,
           cpf,
@@ -256,7 +269,18 @@
           fase,
           ativo: ativoInicial,
           timestamp: serverTimestamp()
-        }, { merge: true });
+        };
+        // Conditionally attach UTM information to the document
+        if (utm_source) {
+          docData.utm_source = utm_source;
+        }
+        if (utm_campaign) {
+          docData.utm_campaign = utm_campaign;
+        }
+        if (utm_term) {
+          docData.utm_term = utm_term;
+        }
+        await setDoc(userDocRef, docData, { merge: true });
 
         setMensagem("Usuário cadastrado com sucesso! Faça login para continuar.", "ok");
         await signOut(auth);
@@ -267,9 +291,28 @@
 
       } catch (err) {
         console.error(err);
-        if (createdUser) await deleteUser(createdUser);
-        await signOut(auth);
-        setMensagem("Erro ao cadastrar.");
+        // tenta apagar o usuário criado, se chegou a criar
+        try {
+          if (createdUser) {
+            await deleteUser(createdUser);
+          }
+        } catch (e) {
+          console.error("Erro ao deletar usuário criado:", e);
+        }
+
+        try {
+          await signOut(auth);
+        } catch (e) {
+          console.error("Erro ao fazer signOut:", e);
+        }
+
+        // mostra o código do erro na tela para a gente diagnosticar
+        const codigo = err && err.code ? err.code : "";
+        const mensagemDetalhe = err && err.message ? err.message : "";
+        setMensagem(
+          "Erro ao cadastrar. Código: " + codigo + (mensagemDetalhe ? " - " + mensagemDetalhe : ""),
+          "erro"
+        );
       }
 
       btn.disabled = false;
